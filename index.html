@@ -24,18 +24,16 @@ const firebaseConfig = {
 let auth, auth2, db, READY = false;
 
 try {
-  // Changed 'cfg' to 'firebaseConfig'
-  if (firebaseConfig.apiKey !== "AIzaSyBvEUvo4angxWP0hzt26dMhrN8EBYQOgG4") {
-    const app = initializeApp(firebaseConfig);
-    const app2 = initializeApp(firebaseConfig, "sec");
+  // قمنا بإزالة الشرط لكي يتم التفعيل مباشرة باستخدام إعداداتك
+  const app = initializeApp(firebaseConfig);
+  const app2 = initializeApp(firebaseConfig, "sec");
     
-    auth = getAuth(app); 
-    auth2 = getAuth(app2); 
-    db = getFirestore(app);
-    READY = true;
-  }
+  auth = getAuth(app); 
+  auth2 = getAuth(app2); 
+  db = getFirestore(app);
+  READY = true; // الآن سيصبح التطبيق جاهزاً
 } catch (e) {
-  console.error(e);
+  console.error("Firebase Initialization Error:", e);
 }
 
 window.FB={
