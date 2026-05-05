@@ -21,15 +21,22 @@ const firebaseConfig = {
   measurementId: "G-300T413MFH"
 };
 
-let auth,auth2,db,READY=false;
-try{
-  if(cfg.apiKey!=="AIzaSyBvEUvo4angxWP0hzt26dMhrN8EBYQOgG4"){
-    const app=initializeApp(cfg);
-    const app2=initializeApp(cfg,"sec");
-    auth=getAuth(app); auth2=getAuth(app2); db=getFirestore(app);
-    READY=true;
+let auth, auth2, db, READY = false;
+
+try {
+  // Changed 'cfg' to 'firebaseConfig'
+  if (firebaseConfig.apiKey !== "AIzaSyBvEUvo4angxWP0hzt26dMhrN8EBYQOgG4") {
+    const app = initializeApp(firebaseConfig);
+    const app2 = initializeApp(firebaseConfig, "sec");
+    
+    auth = getAuth(app); 
+    auth2 = getAuth(app2); 
+    db = getFirestore(app);
+    READY = true;
   }
-}catch(e){console.error(e);}
+} catch (e) {
+  console.error(e);
+}
 
 window.FB={
   ready:READY,db,
