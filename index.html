@@ -1,0 +1,1068 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>منصة التدريب الميداني التعاوني</title>
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet">
+<script type="module">
+import{initializeApp}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import{getAuth,signInWithEmailAndPassword,signOut,onAuthStateChanged,createUserWithEmailAndPassword}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import{getFirestore,doc,getDoc,getDocs,setDoc,collection,query,where,updateDoc,addDoc,deleteDoc,onSnapshot,orderBy,serverTimestamp}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+/* ══ ضع إعدادات Firebase هنا ══ */
+// For Firebase JS SDK v7.20.0 and later, measurementId is optional
+const firebaseConfig = {
+  apiKey: "AIzaSyBvEUvo4angxWP0hzt26dMhrN8EBYQOgG4",
+  authDomain: "training-platform-9d324.firebaseapp.com",
+  projectId: "training-platform-9d324",
+  storageBucket: "training-platform-9d324.firebasestorage.app",
+  messagingSenderId: "40832017610",
+  appId: "1:40832017610:web:0ae192093c490e8ebc0033",
+  measurementId: "G-300T413MFH"
+};
+
+let auth,auth2,db,READY=false;
+try{
+  if(cfg.apiKey!=="YOUR_API_KEY"){
+    const app=initializeApp(cfg);
+    const app2=initializeApp(cfg,"sec");
+    auth=getAuth(app); auth2=getAuth(app2); db=getFirestore(app);
+    READY=true;
+  }
+}catch(e){console.error(e);}
+
+window.FB={
+  ready:READY,db,
+  login:(e,p)=>signInWithEmailAndPassword(auth,e,p),
+  logout:()=>signOut(auth),
+  onAuth:(cb)=>onAuthStateChanged(auth,cb),
+  getUser:(uid)=>getDoc(doc(db,"users",uid)),
+  setUser:(uid,d)=>setDoc(doc(db,"users",uid),{...d,createdAt:serverTimestamp()}),
+  setFinal:(sid,d)=>setDoc(doc(db,"finalReports",sid),{...d}),
+  mergeFinal:(sid,d)=>updateDoc(doc(db,"finalReports",sid),{...d}),
+  updateDoc:(col,id,d)=>updateDoc(doc(db,col,id),{...d,updatedAt:serverTimestamp()}),
+  deleteDoc:(col,id)=>deleteDoc(doc(db,col,id)),
+  addDoc:(col,d)=>addDoc(collection(db,col),{...d,createdAt:serverTimestamp()}),
+  addMsg:(cid,d)=>addDoc(collection(db,"conversations",cid,"messages"),{...d,createdAt:serverTimestamp()}),
+  createAuth:async(e,p)=>{const{user}=await createUserWithEmailAndPassword(auth2,e,p);await signOut(auth2);return user.uid;},
+  watchStudents:(aid,cb)=>onSnapshot(query(collection(db,"users"),where("role","==","student"),where("advisorId","==",aid)),cb),
+  watchAllStudents:(cb)=>onSnapshot(query(collection(db,"users"),where("role","==","student")),cb),
+  watchAllAdvisors:(cb)=>onSnapshot(query(collection(db,"users"),where("role","==","advisor")),cb),
+  watchReports:(sid,cb)=>onSnapshot(query(collection(db,"reports"),where("studentId","==",sid),orderBy("weekNum")),cb),
+  watchMsgs:(cid,cb)=>onSnapshot(query(collection(db,"conversations",cid,"messages"),orderBy("createdAt")),cb),
+  watchFinals:(cb)=>onSnapshot(collection(db,"finalReports"),cb),
+  getAllUsers:()=>getDocs(collection(db,"users")),
+};
+
+if(READY){
+  onAuthStateChanged(auth,async user=>{
+    if(user){
+      const s=await getDoc(doc(db,"users",user.uid));
+      if(s.exists()){window._CU={id:user.uid,...s.data()};navigateToDashboard(s.data().role);}
+    }
+  });
+}
+</script>
+<style>
+:root{--p:#6B4DC4;--pd:#5239A8;--pl:#EDE8F8;--pink:#C0467A;--green:#3D9B5A;--bg:#ECEAF4;--w:#fff;--t:#1E1B2E;--m:#7A7590;--b:#E2DDF5;--sh:0 4px 24px rgba(107,77,196,.10);}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--t);min-height:100vh;direction:rtl;}
+.screen{display:none;min-height:100vh;}.screen.active{display:flex;}
+/* ROLES */
+#sr{flex-direction:column;background:#D4D4D4;}
+.hdr{background:var(--p);padding:28px 0;text-align:center;}.hdr h1{color:#fff;font-size:26px;font-weight:800;}
+.roles{flex:1;display:flex;align-items:center;justify-content:center;padding:60px 40px;gap:28px;flex-wrap:wrap;}
+.rc{width:190px;height:190px;border-radius:22px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;cursor:pointer;transition:transform .22s cubic-bezier(.34,1.56,.64,1),box-shadow .22s;box-shadow:0 6px 24px rgba(0,0,0,.14);animation:pi .5s ease both;}
+.rc:nth-child(1){animation-delay:.1s;}.rc:nth-child(2){animation-delay:.2s;}.rc:nth-child(3){animation-delay:.3s;}
+@keyframes pi{from{opacity:0;transform:scale(.8);}to{opacity:1;transform:scale(1);}}
+.rc:hover{transform:scale(1.07) translateY(-4px);}.rc.sup{background:var(--pink);}.rc.adv{background:var(--p);}.rc.stu{background:var(--green);}
+.ri{font-size:44px;line-height:1;}.rl{color:#fff;font-size:16px;font-weight:700;text-align:center;line-height:1.4;}
+/* LOGIN */
+#sl{align-items:center;justify-content:center;background:#CECECE;position:relative;overflow:hidden;}
+.lbk{position:absolute;top:20px;right:24px;background:rgba(255,255,255,.7);border:none;border-radius:50px;padding:8px 18px;font-family:'Tajawal',sans-serif;font-size:14px;font-weight:600;cursor:pointer;color:var(--p);z-index:2;}
+.lc{background:#fff;border-radius:24px;padding:48px 44px 52px;width:100%;max-width:420px;box-shadow:0 20px 60px rgba(0,0,0,.14);position:relative;z-index:1;animation:su .5s ease;}
+@keyframes su{from{opacity:0;transform:translateY(30px);}to{opacity:1;transform:translateY(0);}}
+.llo{width:72px;height:72px;background:var(--p);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 20px;font-size:32px;}
+.lt{text-align:center;margin-bottom:32px;}.lt h1{font-size:22px;font-weight:800;margin-bottom:6px;}.lt p{font-size:14px;color:var(--m);}
+.fg{margin-bottom:18px;}.fg label{display:block;font-size:13px;font-weight:600;color:#444;margin-bottom:8px;}
+.iw{position:relative;}.iw input{width:100%;padding:12px 16px 12px 44px;background:#FDF5F5;border:1.5px solid #EDD8D8;border-radius:10px;font-family:'Tajawal',sans-serif;font-size:14px;direction:rtl;outline:none;transition:border-color .2s;}
+.iw input:focus{border-color:var(--p);box-shadow:0 0 0 3px rgba(107,77,196,.12);background:#fff;}
+.ii{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:#C0B0D8;font-size:16px;}
+.bl{width:100%;padding:14px;background:var(--p);color:#fff;border:none;border-radius:10px;font-family:'Tajawal',sans-serif;font-size:16px;font-weight:700;cursor:pointer;margin-top:8px;}
+.bl:disabled{opacity:.6;cursor:not-allowed;}
+.em{color:#D94040;font-size:12.5px;text-align:center;margin-top:10px;min-height:18px;}
+/* DASHBOARD */
+.ds{flex-direction:column;background:#F2F0FA;min-height:100vh;}
+.dt{background:#fff;border-bottom:1px solid var(--b);padding:0 32px;height:66px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;box-shadow:0 2px 12px rgba(107,77,196,.07);}
+.dtr{display:flex;align-items:center;gap:14px;}
+.da{width:40px;height:40px;background:var(--p);border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:16px;font-weight:700;flex-shrink:0;}
+.dtt h2{font-size:15px;font-weight:700;}.dtt span{font-size:12.5px;color:var(--m);}
+.dta{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.bt{display:flex;align-items:center;gap:6px;padding:8px 16px;border-radius:50px;font-family:'Tajawal',sans-serif;font-size:13px;font-weight:600;cursor:pointer;border:1.5px solid;transition:all .2s;white-space:nowrap;}
+.bt-lo{background:#FDF5F5;border-color:#EDD8D8;color:#C05050;}
+.bt-msg{background:var(--pl);border-color:var(--b);color:var(--p);}
+.bt-usr{background:#E8F5E9;border-color:#C8E6C9;color:#2E7D32;}
+.bt-bc{background:#FFF3CD;border-color:#FFE082;color:#856404;}
+.db{padding:28px 32px;max-width:1100px;width:100%;margin:0 auto;}
+/* STATS */
+.sg{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-bottom:24px;}
+.sc{background:#fff;border-radius:16px;padding:20px;box-shadow:var(--sh);animation:fu .4s ease both;}
+.sc.cl{cursor:pointer;transition:transform .2s,box-shadow .2s;}.sc.cl:hover{transform:translateY(-3px);box-shadow:0 8px 32px rgba(107,77,196,.18);}
+.sc.ac{border:2px solid var(--p);}
+@keyframes fu{from{opacity:0;transform:translateY(16px);}to{opacity:1;transform:translateY(0);}}
+.st2{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:14px;}
+.sl2{font-size:13px;color:var(--m);font-weight:500;line-height:1.5;}
+.si2{width:42px;height:42px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;}
+.sv2{font-size:30px;font-weight:800;}
+/* CARD */
+.card{background:#fff;border-radius:16px;padding:24px;box-shadow:var(--sh);margin-bottom:20px;animation:fu .4s ease both;}
+.ch{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;}
+.ct{font-size:15px;font-weight:700;}
+.tb{background:none;border:2px solid var(--p);cursor:pointer;padding:2px 10px;border-radius:8px;color:var(--p);font-size:20px;font-weight:700;line-height:1.2;transition:all .2s;min-width:34px;text-align:center;}
+.tb:hover{background:var(--p);color:#fff;}
+/* TABLE */
+.tw{overflow-x:auto;border-radius:12px;border:1px solid var(--b);}
+table{width:100%;border-collapse:collapse;font-size:13.5px;}
+thead th{background:#F7F5FD;padding:14px 18px;text-align:right;font-size:12.5px;font-weight:700;color:var(--m);border-bottom:1px solid var(--b);white-space:nowrap;}
+tbody tr{border-bottom:1px solid #F5F2FC;transition:background .15s;}
+tbody tr:last-child{border-bottom:none;}tbody tr:hover{background:#FBF9FF;}
+tbody td{padding:12px 18px;text-align:right;font-weight:500;vertical-align:middle;}
+.bx{display:inline-block;padding:4px 12px;border-radius:99px;font-size:12px;font-weight:700;}
+.bd{background:#D4EDDA;color:#1B6B35;}.bp{background:#FFF3CD;color:#8B6300;}
+.bn{background:#E8E8F0;color:#555;}.ba{background:#D1ECF1;color:#0C5460;}.br{background:#F8D7DA;color:#721C24;}
+/* ROWS */
+.sr{display:flex;align-items:center;gap:14px;padding:14px 8px;border-bottom:1px solid #F5F2FC;cursor:pointer;border-radius:10px;transition:background .15s;}
+.sr:last-of-type{border-bottom:none;}.sr:hover{background:#FBF9FF;}.sr.sel{background:#F0EBFB;}
+.sav{width:40px;height:40px;background:var(--pl);border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--p);font-size:16px;font-weight:700;flex-shrink:0;}
+.sn{font-size:14px;font-weight:700;}.se{font-size:12px;color:var(--m);margin-top:2px;}
+.sm{font-size:12px;color:var(--p);font-weight:600;white-space:nowrap;}
+/* BUTTONS */
+.btn{padding:7px 16px;border:none;border-radius:8px;font-family:'Tajawal',sans-serif;font-size:13px;font-weight:700;cursor:pointer;transition:all .2s;white-space:nowrap;}
+.b-p{background:var(--p);color:#fff;}.b-p:hover{background:var(--pd);}
+.b-a{background:#D4EDDA;color:#1B6B35;}.b-a:hover{background:#b8dfca;}
+.b-r{background:#F8D7DA;color:#721C24;}.b-r:hover{background:#f1b8bc;}
+.b-v{background:var(--pl);color:var(--p);}.b-v:hover{background:#DDD5F5;}
+.b-s{background:#E8F5E9;color:#2E7D32;}.b-s:hover{background:#C8E6C9;}
+.b-sm{padding:5px 12px;font-size:12px;}
+/* FINAL BAR */
+.fb{background:linear-gradient(135deg,#2C3E50,#4A5568);border-radius:16px;padding:20px 28px;color:#fff;display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;box-shadow:0 6px 24px rgba(0,0,0,.18);gap:16px;flex-wrap:wrap;}
+.fbi{display:flex;align-items:center;gap:16px;}.fbic{font-size:32px;}
+.fbt h3{font-size:16px;font-weight:800;margin-bottom:3px;}.fbt p{font-size:13px;opacity:.8;}
+.fbb{padding:10px 22px;background:rgba(255,255,255,.15);color:#fff;border:1.5px solid rgba(255,255,255,.4);border-radius:10px;font-family:'Tajawal',sans-serif;font-size:14px;font-weight:700;cursor:pointer;}
+.fbb:hover{background:rgba(255,255,255,.28);}
+.fsb{padding:6px 14px;border-radius:99px;font-size:12px;font-weight:700;}
+.fs0{background:rgba(255,255,255,.15);color:#fff;}.fs1{background:#D4EDDA;color:#1B6B35;}.fs2{background:#D1ECF1;color:#0C5460;}.fs3{background:#F8D7DA;color:#721C24;}
+/* NDC */
+.ndc{background:linear-gradient(135deg,var(--p),var(--pd));border-radius:16px;padding:24px 28px;color:#fff;display:flex;align-items:center;gap:20px;margin-bottom:24px;box-shadow:0 8px 32px rgba(107,77,196,.35);}
+/* DECLINE */
+.dcb{background:#FFF8E1;border:1.5px solid #FFE082;border-radius:12px;padding:14px;margin-bottom:8px;}
+.dcl{font-size:12px;font-weight:700;color:#856404;margin-bottom:6px;}.dct{font-size:13px;color:#5D4037;}
+/* MODAL */
+.mo{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:500;display:none;align-items:center;justify-content:center;padding:20px;}
+.mo.open{display:flex;}
+.mb{background:#fff;border-radius:20px;width:100%;max-width:720px;max-height:90vh;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,.25);animation:su .3s ease;}
+.mh{padding:18px 24px;border-bottom:1px solid var(--b);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
+.mti{font-size:16px;font-weight:800;}
+.mcl{background:none;border:none;cursor:pointer;font-size:22px;color:var(--m);padding:4px 8px;border-radius:8px;}
+.mcl:hover{background:#F0EBF8;color:var(--p);}
+.mbd{padding:24px;overflow-y:auto;flex:1;}
+.mft{padding:16px 24px;border-top:1px solid var(--b);display:flex;gap:12px;justify-content:flex-end;flex-shrink:0;}
+/* FORM */
+.fl{font-size:13px;font-weight:700;color:#444;margin-bottom:6px;}
+.fi{width:100%;padding:10px 14px;border:1.5px solid var(--b);border-radius:10px;font-family:'Tajawal',sans-serif;font-size:14px;outline:none;direction:rtl;background:#FDFBFF;margin-bottom:12px;}
+.fi:focus{border-color:var(--p);}
+textarea.fi{resize:vertical;min-height:80px;}select.fi{cursor:pointer;}
+.fg2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:4px;}
+.fg2 .fitem{margin-bottom:0;}
+.rig{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;}
+.rit{background:#F7F5FD;border-radius:10px;padding:10px;}.ril{font-size:11px;color:var(--m);font-weight:600;margin-bottom:3px;}.riv{font-size:13px;font-weight:600;}
+.rs{margin-bottom:18px;}.rs h4{font-size:14px;font-weight:700;color:var(--p);margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--b);}
+.rv{background:#F7F5FD;border-radius:10px;padding:12px;font-size:13.5px;line-height:1.7;margin-bottom:10px;min-height:40px;}
+.etxt{color:#D94040;font-size:13px;margin-top:8px;min-height:16px;}
+.stxt{color:#1B6B35;font-size:13px;background:#D4EDDA;padding:10px 14px;border-radius:10px;display:none;}
+/* CHAT */
+.cw{display:flex;height:460px;}
+.cl{width:220px;border-left:1px solid var(--b);overflow-y:auto;background:#F9F7FF;flex-shrink:0;}
+.ci{padding:12px 14px;cursor:pointer;border-bottom:1px solid var(--b);transition:background .15s;}
+.ci:hover{background:#EDE8F8;}.ci.ca{background:#EDE8F8;border-right:3px solid var(--p);}
+.cn{font-size:14px;font-weight:700;}.cr{font-size:11px;color:var(--m);}
+.cp{font-size:12px;color:var(--m);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.carea{flex:1;display:flex;flex-direction:column;}
+.cms{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:8px;}
+.cm{max-width:75%;padding:10px 14px;border-radius:14px;font-size:14px;line-height:1.5;}
+.cm.mine{background:var(--p);color:#fff;align-self:flex-start;border-bottom-left-radius:4px;}
+.cm.theirs{background:#F0EBFB;align-self:flex-end;border-bottom-right-radius:4px;}
+.cmt{font-size:10px;opacity:.65;margin-top:3px;}
+.cir{padding:10px 14px;border-top:1px solid var(--b);display:flex;gap:8px;}
+.cinp{flex:1;padding:9px 14px;border:1.5px solid var(--b);border-radius:10px;font-family:'Tajawal',sans-serif;font-size:14px;outline:none;direction:rtl;}
+.cinp:focus{border-color:var(--p);}
+.csnd{padding:9px 18px;background:var(--p);color:#fff;border:none;border-radius:10px;font-family:'Tajawal',sans-serif;font-weight:700;cursor:pointer;}
+.cempty{text-align:center;color:var(--m);padding:40px 20px;font-size:14px;}
+/* TABS */
+.tabs{display:flex;border-bottom:1px solid var(--b);background:#F9F7FF;}
+.tab{padding:12px 22px;background:none;border:none;font-family:'Tajawal',sans-serif;font-size:14px;font-weight:600;cursor:pointer;color:var(--m);border-bottom:3px solid transparent;transition:all .2s;}
+.tab.active{color:var(--p);border-bottom-color:var(--p);}
+.fts{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;}
+.ft{padding:6px 14px;border:1.5px solid var(--b);border-radius:50px;background:#fff;font-family:'Tajawal',sans-serif;font-size:13px;font-weight:600;cursor:pointer;color:var(--m);transition:all .2s;}
+.ft.active{background:var(--p);color:#fff;border-color:var(--p);}
+.ur{display:flex;align-items:center;gap:12px;padding:14px;border-radius:12px;background:#F9F7FF;border:1px solid var(--b);margin-bottom:10px;flex-wrap:wrap;}
+.rb{padding:3px 12px;border-radius:99px;font-size:11px;font-weight:700;}
+.rb-s{background:#D4EDDA;color:#1B6B35;}.rb-a{background:#CCE5FF;color:#004085;}.rb-u{background:#F8D7DA;color:#721C24;}
+/* STARS */
+.stsrow{display:flex;gap:4px;direction:ltr;margin:8px 0;}
+.sts{font-size:24px;cursor:pointer;color:#ddd;transition:color .1s;line-height:1;user-select:none;}
+.sts.on,.sts.hv{color:#F5A623;}
+/* EVAL */
+.eg{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;}
+.ei label{display:block;font-size:13px;font-weight:600;margin-bottom:6px;}
+.ei select{width:100%;padding:8px 12px;border:1.5px solid var(--b);border-radius:8px;font-family:'Tajawal',sans-serif;font-size:14px;outline:none;}
+/* ADV CONTACT */
+.ar{display:flex;align-items:center;gap:14px;padding:14px;border-radius:12px;background:#F9F7FF;border:1px solid var(--b);margin-bottom:12px;}
+.arav{width:44px;height:44px;background:var(--p);border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:18px;font-weight:700;flex-shrink:0;}
+/* FILE UPLOAD */
+.fup{border:2px dashed var(--b);border-radius:12px;padding:20px;text-align:center;cursor:pointer;background:#FDFBFF;}
+.fup:hover{border-color:var(--p);background:var(--pl);}
+.fup input{display:none;}
+/* LOADING / TOAST */
+#lov{position:fixed;inset:0;background:rgba(255,255,255,.85);display:none;align-items:center;justify-content:center;z-index:999;}
+#lov.on{display:flex;}
+.sp{width:40px;height:40px;border:4px solid var(--b);border-top-color:var(--p);border-radius:50%;animation:sp .7s linear infinite;}
+@keyframes sp{to{transform:rotate(360deg);}}
+#tst{position:fixed;bottom:28px;left:50%;transform:translateX(-50%);background:#2C3E50;color:#fff;padding:11px 24px;border-radius:50px;font-family:Tajawal,sans-serif;font-size:14px;font-weight:600;z-index:9999;opacity:0;transition:opacity .3s;pointer-events:none;white-space:nowrap;}
+@media(max-width:700px){.sg{grid-template-columns:repeat(2,1fr);}.db{padding:16px;}.dt{padding:0 14px;}.roles{padding:40px 16px;gap:16px;}.rc{width:150px;height:150px;}.ri{font-size:34px;}.lc{padding:36px 24px 40px;margin:16px;}.fg2,.rig,.eg{grid-template-columns:1fr;}.cl{width:150px;}}
+</style>
+</head>
+<body>
+<div id="lov"><div class="sp"></div></div>
+<div id="tst"></div>
+
+<!-- MODAL CHAT -->
+<div class="mo" id="m-chat">
+  <div class="mb" style="max-width:800px;">
+    <div class="mh"><div class="mti">💬 المراسلات</div><button class="mcl" onclick="closeM('m-chat')">✕</button></div>
+    <div class="cw">
+      <div class="cl" id="cc-list"></div>
+      <div class="carea">
+        <div class="cms" id="c-msgs"><div class="cempty">اختر محادثة</div></div>
+        <div class="cir"><input class="cinp" id="c-inp" placeholder="اكتب رسالتك..." onkeydown="if(event.key==='Enter')sendMsg()"><button class="csnd" onclick="sendMsg()">إرسال</button></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL BROADCAST -->
+<div class="mo" id="m-bc">
+  <div class="mb" style="max-width:500px;">
+    <div class="mh"><div class="mti">📢 رسالة لجميع الطلاب</div><button class="mcl" onclick="closeM('m-bc')">✕</button></div>
+    <div class="mbd"><div class="fl">الرسالة</div><textarea class="fi" id="bc-txt" rows="5" placeholder="اكتب رسالتك لجميع طلابك..."></textarea><div class="etxt" id="bc-err"></div></div>
+    <div class="mft"><button class="btn b-p" onclick="sendBC()">إرسال للجميع 📤</button><button class="btn" style="background:#EEE;color:#555;" onclick="closeM('m-bc')">إلغاء</button></div>
+  </div>
+</div>
+
+<!-- MODAL REPORT -->
+<div class="mo" id="m-rep">
+  <div class="mb"><div class="mh"><div class="mti" id="mr-ti">التقرير</div><button class="mcl" onclick="closeM('m-rep')">✕</button></div>
+  <div class="mbd" id="mr-bd"></div><div class="mft" id="mr-ft"></div></div>
+</div>
+
+<!-- MODAL FINAL -->
+<div class="mo" id="m-fin">
+  <div class="mb"><div class="mh"><div class="mti">التقرير النهائي</div><button class="mcl" onclick="closeM('m-fin')">✕</button></div>
+  <div class="mbd" id="mf-bd"></div><div class="mft" id="mf-ft"></div></div>
+</div>
+
+<!-- MODAL USERS (advisor) -->
+<div class="mo" id="m-usr">
+  <div class="mb" style="max-width:780px;">
+    <div class="mh"><div class="mti">👥 إدارة المستخدمين</div><button class="mcl" onclick="closeM('m-usr')">✕</button></div>
+    <div class="mbd" style="padding:0;">
+      <div class="tabs"><button class="tab active" id="t-add" onclick="swTab('add')">➕ إضافة</button><button class="tab" id="t-lst" onclick="swTab('list')">📋 القائمة</button></div>
+      <div id="p-add" style="padding:24px;">
+        <div class="fg2">
+          <div><div class="fl">الاسم الكامل *</div><input class="fi" id="u-nm" type="text" placeholder="الاسم الكامل"></div>
+          <div><div class="fl">البريد الإلكتروني *</div><input class="fi" id="u-em" type="email" placeholder="email@example.com"></div>
+          <div><div class="fl">كلمة المرور * (8+ أحرف)</div><input class="fi" id="u-pw" type="password" placeholder="••••••••"></div>
+          <div><div class="fl">الدور *</div>
+            <select class="fi" id="u-rl" onchange="toggleSF()">
+              <option value="">— اختر —</option>
+              <option value="student">طالب</option>
+              <option value="supervisor">مشرف التدريب</option>
+            </select>
+          </div>
+        </div>
+        <div id="sf" style="display:none;border-top:1px solid var(--b);padding-top:16px;margin-top:4px;">
+          <div style="font-size:14px;font-weight:700;color:var(--p);margin-bottom:12px;">بيانات الطالب</div>
+          <div class="fg2">
+            <div><div class="fl">القسم العلمي</div><input class="fi" id="u-dp" type="text" placeholder="نظم المعلومات الإدارية"></div>
+            <div><div class="fl">جهة التدريب</div><input class="fi" id="u-co" type="text" placeholder="شركة أرامكو"></div>
+            <div><div class="fl">القسم في جهة التدريب</div><input class="fi" id="u-cd" type="text" placeholder="تقنية المعلومات"></div>
+            <div><div class="fl">عدد التقارير المطلوبة</div><input class="fi" id="u-rc" type="number" value="10" min="1" max="20"></div>
+          </div>
+        </div>
+        <div class="etxt" id="u-er"></div>
+        <div class="stxt" id="u-sc"></div>
+        <button class="btn b-p" style="width:100%;padding:13px;font-size:15px;margin-top:12px;" onclick="createUser()">إنشاء الحساب ✅</button>
+      </div>
+      <div id="p-lst" style="padding:24px;display:none;">
+        <div class="fts">
+          <button class="ft active" data-r="all" onclick="filterU(this,'all')">الكل</button>
+          <button class="ft" data-r="student" onclick="filterU(this,'student')">الطلاب</button>
+          <button class="ft" data-r="supervisor" onclick="filterU(this,'supervisor')">المشرفون</button>
+        </div>
+        <div id="u-lst"><p style="text-align:center;color:var(--m);padding:20px;">جارٍ التحميل...</p></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SCREEN ROLES -->
+<div id="sr" class="screen active">
+  <div class="hdr"><h1>منصة التدريب الميداني التعاوني</h1></div>
+  <div class="roles">
+    <div class="rc sup" onclick="pickRole('supervisor')"><div class="ri">👤</div><div class="rl">مشرف<br>التدريب</div></div>
+    <div class="rc adv" onclick="pickRole('advisor')"><div class="ri">🎓</div><div class="rl">المرشد<br>الأكاديمي</div></div>
+    <div class="rc stu" onclick="pickRole('student')"><div class="ri">📖</div><div class="rl">الطلاب</div></div>
+  </div>
+</div>
+
+<!-- SCREEN LOGIN -->
+<div id="sl" class="screen">
+  <button class="lbk" onclick="show('sr')">&#8594; رجوع</button>
+  <div class="lc">
+    <div class="llo">🎓</div>
+    <div class="lt"><h1>منصة التدريب الميداني</h1><p id="l-sub">تسجيل الدخول</p></div>
+    <div class="fg"><label>البريد الإلكتروني</label><div class="iw"><input type="email" id="l-em" placeholder="أدخل بريدك"><span class="ii">✉</span></div></div>
+    <div class="fg"><label>كلمة المرور</label><div class="iw"><input type="password" id="l-pw" placeholder="أدخل كلمة المرور"><span class="ii">🔒</span></div></div>
+    <button class="bl" id="l-btn" onclick="doLogin()">تسجيل الدخول</button>
+    <div class="em" id="l-er"></div>
+  </div>
+</div>
+
+<!-- SCREEN STUDENT -->
+<div id="s-stu" class="screen ds">
+  <div class="dt">
+    <div class="dtr"><div class="da" id="st-av">ط</div><div class="dtt"><h2>لوحة تحكم الطالب</h2><span id="st-nm">—</span></div></div>
+    <div class="dta">
+      <button class="bt bt-msg" onclick="openChat()">💬 مراسلة</button>
+      <button class="bt bt-lo" onclick="doLogout()">&#8592; خروج</button>
+    </div>
+  </div>
+  <div class="db">
+    <div class="fb">
+      <div class="fbi"><div class="fbic">📋</div><div class="fbt"><h3>التقرير النهائي</h3><p>أرسل تقريرك النهائي لمشرف التدريب</p></div></div>
+      <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+        <span class="fsb fs0" id="st-fs">لم يُرسَل بعد</span>
+        <button class="fbb" onclick="openStuFinal()">إرسال التقرير النهائي 📤</button>
+      </div>
+    </div>
+    <div class="ndc" id="st-ndc"><div style="font-size:38px;">📅</div>
+      <div><div style="font-size:13px;opacity:.8;margin-bottom:4px;">التقرير القادم</div>
+        <div style="font-size:18px;font-weight:800;" id="st-nt">—</div>
+        <div style="font-size:13px;opacity:.85;margin-top:3px;" id="st-nd">—</div>
+      </div>
+    </div>
+    <div class="sg">
+      <div class="sc"><div class="st2"><div class="sl2">التقارير المطلوبة</div><div class="si2" style="background:#FFEAEA;">📄</div></div><div class="sv2" id="st-tot">—</div></div>
+      <div class="sc"><div class="st2"><div class="sl2">المُرسَلة</div><div class="si2" style="background:#E2F5EB;">✅</div></div><div class="sv2" id="st-dn">—</div></div>
+      <div class="sc"><div class="st2"><div class="sl2">قيد التنفيذ</div><div class="si2" style="background:#FFF8E1;">⏳</div></div><div class="sv2" id="st-ip">—</div></div>
+      <div class="sc"><div class="st2"><div class="sl2">نسبة الإنجاز</div><div class="si2" style="background:#EDE8F8;">📊</div></div><div class="sv2" id="st-pc">—</div></div>
+    </div>
+    <div class="card">
+      <div class="ch"><div class="ct">تقاريري الدورية</div></div>
+      <div class="tw"><table>
+        <thead><tr><th>التقرير</th><th>الاستحقاق</th><th>الحالة</th><th>اعتماد المشرف</th><th>تقييم المرشد</th><th>إجراء</th></tr></thead>
+        <tbody id="st-tb"></tbody>
+      </table></div>
+    </div>
+  </div>
+</div>
+
+<!-- SCREEN ADVISOR -->
+<div id="s-adv" class="screen ds">
+  <div class="dt">
+    <div class="dtr"><div class="da" id="adv-av">م</div><div class="dtt"><h2>لوحة تحكم المرشد الأكاديمي</h2><span id="adv-nm">—</span></div></div>
+    <div class="dta">
+      <button class="bt bt-msg" onclick="openChat()">💬 مراسلة</button>
+      <button class="bt bt-bc" onclick="openM('m-bc')">📢 رسالة جماعية</button>
+      <button class="bt bt-usr" onclick="openUsrMgmt()">👥 إدارة المستخدمين</button>
+      <button class="bt bt-lo" onclick="doLogout()">&#8592; خروج</button>
+    </div>
+  </div>
+  <div class="db">
+    <div class="sg">
+      <div class="sc"><div class="st2"><div class="sl2">إجمالي الطلاب</div><div class="si2" style="background:#E3F0FB;">👤</div></div><div class="sv2" id="adv-cnt">—</div></div>
+      <div class="sc"><div class="st2"><div class="sl2">إجمالي التقارير</div><div class="si2" style="background:#FFEAEA;">📄</div></div><div class="sv2" id="adv-tot">—</div></div>
+      <div class="sc"><div class="st2"><div class="sl2">معتمدة</div><div class="si2" style="background:#E2F5EB;">✅</div></div><div class="sv2" id="adv-dn">—</div></div>
+      <div class="sc"><div class="st2"><div class="sl2">معدل الإنجاز</div><div class="si2" style="background:#EDE8F8;">📊</div></div><div class="sv2" id="adv-rt">—</div></div>
+    </div>
+    <div class="card">
+      <div class="ch"><div class="ct">الطلاب</div>
+        <div style="display:flex;align-items:center;gap:10px;"><span style="font-size:13px;color:var(--m);" id="adv-sl"></span><button class="tb" id="adv-exp" onclick="togAdv()">+</button></div>
+      </div>
+      <div id="adv-sl2"></div>
+    </div>
+    <div id="adv-det" class="card" style="display:none;">
+      <div class="ch"><div class="ct" id="adv-dn2">تفاصيل</div><button class="tb" id="adv-rem" onclick="togAdvRem()">+ المتبقية</button></div>
+      <div id="adv-dc"></div>
+    </div>
+    <div class="card">
+      <div class="ch"><div class="ct">التقارير النهائية 📋</div></div>
+      <div id="adv-fins"><p style="text-align:center;color:var(--m);padding:20px;">لا توجد تقارير نهائية بعد</p></div>
+    </div>
+  </div>
+</div>
+
+<!-- SCREEN SUPERVISOR -->
+<div id="s-sup" class="screen ds">
+  <div class="dt">
+    <div class="dtr"><div class="da" id="sup-av">م</div><div class="dtt"><h2>لوحة تحكم مشرف التدريب</h2><span id="sup-nm">—</span></div></div>
+    <div class="dta">
+      <button class="bt bt-msg" onclick="openChat()">💬 مراسلة</button>
+      <button class="bt bt-lo" onclick="doLogout()">&#8592; خروج</button>
+    </div>
+  </div>
+  <div class="db">
+    <div class="sg" style="grid-template-columns:1fr 1fr;max-width:440px;">
+      <div class="sc"><div class="st2"><div class="sl2">إجمالي المتدربين</div><div class="si2" style="background:#E3F0FB;">👥</div></div><div class="sv2" id="sup-tot">—</div></div>
+      <div class="sc cl" id="sup-ac" onclick="togAdvPan()"><div class="st2"><div class="sl2">التواصل مع المرشدين</div><div class="si2" style="background:#EDE8F8;">💬</div></div><div style="font-size:13px;color:var(--p);font-weight:700;">اضغط للعرض</div></div>
+    </div>
+    <div class="card" id="adv-pan" style="display:none;">
+      <div class="ch"><div class="ct">المرشدون الأكاديميون</div><button class="tb" onclick="togAdvPan()">−</button></div>
+      <div id="adv-cl"></div>
+    </div>
+    <div class="fb">
+      <div class="fbi"><div class="fbic">📋</div><div class="fbt"><h3>التقييم النهائي</h3><p>راجع التقارير النهائية وارفع تقييمك</p></div></div>
+      <button class="fbb" onclick="openSupFins()">عرض التقارير النهائية</button>
+    </div>
+    <div class="card">
+      <div class="ch"><div class="ct">المتدربون</div>
+        <div style="display:flex;align-items:center;gap:10px;"><span style="font-size:13px;color:var(--m);" id="sup-sl"></span><button class="tb" id="sup-exp" onclick="togSup()">+</button></div>
+      </div>
+      <div id="sup-sl2"></div>
+    </div>
+    <div id="sup-rc" class="card" style="display:none;">
+      <div class="ch"><div class="ct" id="sup-rt">تقارير الطالب</div></div>
+      <div id="sup-rct"></div>
+    </div>
+    <div id="sup-fp" class="card" style="display:none;">
+      <div class="ch"><div class="ct">التقارير النهائية المقدمة</div><button class="tb" onclick="document.getElementById('sup-fp').style.display='none'">−</button></div>
+      <div id="sup-fc"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ══════════════ STATE ══════════════ */
+let CU=null, CR=null, _unsub=[], _chatUnsub=null;
+let _advStu=[], _advAll=false, _advRem=false, _advSel=null;
+let _supStu=[], _supAll=false, _supSel=null, _advPan=false;
+let _chatConv=null, _chatCtx=[], _pStar=0;
+const RL={supervisor:'تسجيل دخول مشرف التدريب',advisor:'تسجيل دخول المرشد الأكاديمي',student:'تسجيل دخول الطلاب'};
+
+/* ══════════════ HELPERS ══════════════ */
+function show(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');window.scrollTo(0,0);}
+function openM(id){document.getElementById(id).classList.add('open');}
+function closeM(id){document.getElementById(id).classList.remove('open');}
+document.querySelectorAll('.mo').forEach(m=>m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('open');}));
+function setEl(id,v){const e=document.getElementById(id);if(e)e.textContent=v;}
+function ld(on){document.getElementById('lov').classList.toggle('on',on);}
+function toast(msg){const t=document.getElementById('tst');t.textContent=msg;t.style.opacity='1';clearTimeout(t._t);t._t=setTimeout(()=>t.style.opacity='0',3500);}
+function bdg(s){const m={'مكتمل':'bd','مُرسَل':'bp','قيد التنفيذ':'bp','مرفوض':'br','معتمد':'ba','معلق':'bn'};return`<span class="bx ${m[s]||'bn'}">${s||'معلق'}</span>`;}
+function strs(n,sz=16){if(n==null)return'<span style="color:var(--m);">—</span>';return`<span style="color:#F5A623;font-size:${sz}px;">${'★'.repeat(n)+'☆'.repeat(5-n)}</span><small> (${n}/5)</small>`;}
+function nowt(){return new Date().toLocaleTimeString('ar',{hour:'2-digit',minute:'2-digit'});}
+function unsub(){_unsub.forEach(f=>{try{f();}catch(e){}});_unsub=[];}
+function cid(a,b){return[a,b].sort().join('_');}
+
+/* ══════════════ NAVIGATION ══════════════ */
+function pickRole(r){CR=r;document.getElementById('l-sub').textContent=RL[r]||'تسجيل الدخول';document.getElementById('l-er').textContent='';document.getElementById('l-em').value='';document.getElementById('l-pw').value='';show('sl');}
+function navigateToDashboard(r){const m={student:'s-stu',advisor:'s-adv',supervisor:'s-sup'};if(!m[r]){show('sr');return;}buildDash(r);show(m[r]);}
+
+/* ══════════════ LOGIN / LOGOUT ══════════════ */
+async function doLogin(){
+  const em=document.getElementById('l-em').value.trim(),pw=document.getElementById('l-pw').value.trim();
+  const er=document.getElementById('l-er'),btn=document.getElementById('l-btn');
+  if(!em||!pw){er.textContent='يرجى إدخال البريد وكلمة المرور';return;}
+  er.textContent='';btn.disabled=true;btn.textContent='جارٍ التحقق...';
+  try{
+    if(!window.FB?.ready)throw new Error('Firebase غير متصل — أضف إعداداتك في الكود');
+    const{user}=await window.FB.login(em,pw);
+    const snap=await window.FB.getUser(user.uid);
+    if(!snap.exists())throw new Error('لم يتم العثور على بيانات المستخدم في قاعدة البيانات');
+    const data=snap.data();
+    if(data.role!==CR)throw new Error(`هذا الحساب مسجّل كـ "${RL[data.role]||data.role}" — اختر الدور الصحيح`);
+    CU={id:user.uid,...data};
+    navigateToDashboard(CR);
+  }catch(e){er.textContent=e.code==='auth/invalid-credential'||e.code==='auth/wrong-password'?'بريد إلكتروني أو كلمة مرور غير صحيحة':e.message;}
+  finally{btn.disabled=false;btn.textContent='تسجيل الدخول';}
+}
+function doLogout(){if(window.FB?.ready)window.FB.logout();CU=null;CR=null;unsub();if(_chatUnsub){try{_chatUnsub();}catch(e){}}_chatUnsub=null;_advStu=[];_supStu=[];_advSel=null;_supSel=null;show('sr');}
+document.addEventListener('keydown',e=>{if(e.key==='Enter'&&document.getElementById('sl').classList.contains('active'))doLogin();});
+
+/* ══════════════ BUILD ══════════════ */
+function buildDash(r){ld(true);try{if(r==='student')buildStu();if(r==='advisor')buildAdv();if(r==='supervisor')buildSup();}finally{ld(false);}}
+
+/* ──── STUDENT ──── */
+function buildStu(){
+  if(!CU){show('sr');return;}
+  setEl('st-nm',CU.name||'الطالب');setEl('st-av',(CU.name||'ط')[0]);
+  if(!window.FB?.ready)return;
+  _unsub.push(window.FB.watchReports(CU.id,snap=>{
+    const r=snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(a.weekNum||0)-(b.weekNum||0));
+    renderStuReps(r);
+  }));
+  _unsub.push(window.FB.watchFinals(snap=>{
+    const d=snap.docs.find(x=>x.id===CU.id);
+    updStuFinal(d?d.data():null);
+  }));
+}
+
+function renderStuReps(reps){
+  const dn=reps.filter(r=>r.status==='مكتمل').length;
+  const ip=reps.filter(r=>r.status==='مُرسَل'||r.status==='قيد التنفيذ').length;
+  const pc=reps.length?Math.round(dn/reps.length*100):0;
+  setEl('st-tot',reps.length);setEl('st-dn',dn);setEl('st-ip',ip);setEl('st-pc',pc+'%');
+  const nx=reps.find(r=>r.status!=='مكتمل');
+  if(nx){setEl('st-nt',nx.reportTitle||'—');setEl('st-nd','تاريخ الاستحقاق: '+(nx.dueDate||'—'));document.getElementById('st-ndc').style.display='flex';}
+  else document.getElementById('st-ndc').style.display='none';
+  const tbody=document.getElementById('st-tb');
+  tbody.innerHTML=reps.map(r=>{
+    const dec=r.supervisorStatus==='مرفوض';
+    const can=r.status==='معلق'||dec;
+    return`<tr>
+      <td>${r.reportTitle||'—'}</td>
+      <td style="direction:ltr;text-align:right;">${r.dueDate||'—'}</td>
+      <td>${bdg(r.status)}</td>
+      <td>${r.supervisorStatus?bdg(r.supervisorStatus):'<span style="color:var(--m);font-size:12px;">—</span>'}</td>
+      <td>${strs(r.rating||null)}</td>
+      <td>${dec?`<div class="dcb"><div class="dcl">ملاحظة المشرف:</div><div class="dct">${r.supervisorComment||'—'}</div></div>`:''}
+        ${can?`<button class="btn b-s b-sm" data-rid="${r.id}">رفع التقرير ⬆</button>`:(r.status==='مُرسَل'?'<span style="font-size:12px;color:var(--m);">بانتظار المشرف</span>':'<span style="font-size:12px;color:var(--m);">مكتمل</span>')}
+      </td>
+    </tr>`;
+  }).join('');
+  tbody.querySelectorAll('[data-rid]').forEach(btn=>{
+    btn.addEventListener('click',()=>{const r=reps.find(x=>x.id===btn.dataset.rid);if(r)openStuRep(r);});
+  });
+}
+
+function updStuFinal(data){
+  const lbl={none:'لم يُرسَل بعد',sent:'تم الإرسال — بانتظار المشرف',approved:'معتمد — محال للمرشد',declined:'مرفوض من المشرف'};
+  const cls={none:'fs0',sent:'fs1',approved:'fs2',declined:'fs3'};
+  const s=data?.status||'none';
+  const el=document.getElementById('st-fs');
+  if(el){el.textContent=lbl[s]||'—';el.className='fsb '+(cls[s]||'fs0');}
+}
+
+function openStuRep(r){
+  document.getElementById('mr-ti').textContent=`رفع ${r.reportTitle}`;
+  const p=r.content||{};
+  document.getElementById('mr-bd').innerHTML=`
+    <div class="rs"><h4>بيانات التدريب</h4>
+      <div class="rig"><div class="rit"><div class="ril">الاسم</div><div class="riv">${CU.name}</div></div>
+      <div class="rit"><div class="ril">القسم</div><div class="riv">${CU.dept||'—'}</div></div>
+      <div class="rit"><div class="ril">جهة التدريب</div><div class="riv">${CU.company||'—'}</div></div>
+      <div class="rit"><div class="ril">رقم الأسبوع</div><div class="riv">${r.weekNum}</div></div></div>
+    </div>
+    <div class="rs"><h4>تفاصيل التدريب</h4>
+      <div class="fl">1) الهدف</div><textarea class="fi" id="sc-g" rows="2">${p.goal||''}</textarea>
+      <div class="fl">2) المهام</div><textarea class="fi" id="sc-t" rows="4">${p.tasks||''}</textarea>
+      <div class="fl">3) البرامج المستخدمة</div><textarea class="fi" id="sc-p" rows="2">${p.programs||''}</textarea>
+      <div class="fl">4) الفوائد المكتسبة</div><textarea class="fi" id="sc-b" rows="3">${p.benefits||''}</textarea>
+      <div class="fl">5) اقتراحات للتطوير</div><textarea class="fi" id="sc-s" rows="2">${p.suggestions||''}</textarea>
+    </div>`;
+  document.getElementById('mr-ft').innerHTML=`<button class="btn b-p" id="mr-sub">رفع التقرير ⬆</button><button class="btn" style="background:#EEE;color:#555;" onclick="closeM('m-rep')">إلغاء</button>`;
+  document.getElementById('mr-sub').onclick=()=>submitStuRep(r);
+  openM('m-rep');
+}
+
+async function submitStuRep(r){
+  const goal=document.getElementById('sc-g')?.value.trim(),tasks=document.getElementById('sc-t')?.value.trim();
+  if(!goal||!tasks){toast('يرجى ملء الهدف والمهام');return;}
+  const content={goal,tasks,programs:document.getElementById('sc-p')?.value.trim()||'',benefits:document.getElementById('sc-b')?.value.trim()||'',suggestions:document.getElementById('sc-s')?.value.trim()||''};
+  if(window.FB?.ready)await window.FB.updateDoc('reports',r.id,{status:'مُرسَل',supervisorStatus:null,supervisorComment:'',content});
+  closeM('m-rep');
+  toast('✅ تم رفع التقرير — بانتظار مراجعة المشرف');
+}
+
+function openStuFinal(){
+  document.getElementById('mf-bd').innerHTML=`
+    <p style="font-size:14px;color:var(--m);margin-bottom:18px;">أرسل تقريرك النهائي لمشرف التدريب.</p>
+    <div class="fl">عنوان التقرير *</div><input class="fi" id="fin-t" type="text" placeholder="عنوان محدد">
+    <div class="fl">المستخلص *</div><textarea class="fi" id="fin-a" rows="4" placeholder="ملخص يشمل الأهداف والنتائج..."></textarea>
+    <div class="fl">رفع الملف (PDF/Word)</div>
+    <div class="fup" onclick="document.getElementById('fin-f').click()">
+      <input type="file" id="fin-f" accept=".pdf,.docx,.doc" onchange="document.getElementById('fin-fn').textContent='✅ '+this.files[0]?.name">
+      <div style="font-size:28px;margin-bottom:6px;">📄</div>
+      <div style="font-weight:700;color:var(--p);">اضغط لرفع الملف</div>
+      <div style="font-size:12px;color:var(--m);margin-top:4px;">PDF أو Word</div>
+      <div id="fin-fn" style="color:var(--green);font-weight:600;margin-top:6px;font-size:13px;"></div>
+    </div>`;
+  document.getElementById('mf-ft').innerHTML=`<button class="btn b-p" onclick="submitStuFinal()">إرسال لمشرف التدريب 📤</button><button class="btn" style="background:#EEE;color:#555;" onclick="closeM('m-fin')">إلغاء</button>`;
+  openM('m-fin');
+}
+
+async function submitStuFinal(){
+  const title=document.getElementById('fin-t')?.value.trim(),abs=document.getElementById('fin-a')?.value.trim();
+  const fn=document.getElementById('fin-f')?.files[0]?.name||'';
+  if(!title||!abs){toast('يرجى ملء العنوان والمستخلص');return;}
+  if(window.FB?.ready){
+    await window.FB.setFinal(CU.id,{studentId:CU.id,studentName:CU.name,advisorId:CU.advisorId||'',title,abstract:abs,fileName:fn,status:'sent',submittedAt:new Date().toISOString()});
+  }
+  closeM('m-fin');
+  toast('✅ تم إرسال التقرير النهائي لمشرف التدريب');
+}
+
+/* ──── ADVISOR ──── */
+function buildAdv(){
+  if(!CU){show('sr');return;}
+  setEl('adv-nm',CU.name||'المرشد');setEl('adv-av',(CU.name||'م')[0]);
+  _advAll=false;_advSel=null;
+  document.getElementById('adv-det').style.display='none';
+  if(!window.FB?.ready)return;
+  _unsub.push(window.FB.watchStudents(CU.id,snap=>{
+    _advStu=snap.docs.map(d=>({id:d.id,...d.data()}));
+    setEl('adv-cnt',_advStu.length);setEl('adv-sl',`${_advStu.length} طالب`);
+    renderAdvList();
+    // calc stats
+    let tot=0,dn=0;
+    Promise.all(_advStu.map(s=>window.FB.watchReports(s.id,rsnap=>{
+      const r=rsnap.docs.map(d=>d.data());
+      tot+=r.length;dn+=r.filter(x=>x.status==='مكتمل').length;
+      const rt=tot?Math.round(dn/tot*100):0;
+      setEl('adv-tot',tot);setEl('adv-dn',dn);setEl('adv-rt',rt+'%');
+    }))).catch(()=>{});
+  }));
+  _unsub.push(window.FB.watchFinals(snap=>{
+    const fins=snap.docs.map(d=>({id:d.id,...d.data()})).filter(f=>f.status==='approved'&&_advStu.some(s=>s.id===f.studentId));
+    renderAdvFinals(fins);
+  }));
+}
+
+function renderAdvList(){
+  const SHOW=3,toShow=_advAll?_advStu:_advStu.slice(0,SHOW);
+  document.getElementById('adv-exp').textContent=(_advAll&&_advStu.length>SHOW)?'−':'+';
+  document.getElementById('adv-sl2').innerHTML=toShow.length?toShow.map(s=>`
+    <div class="sr${_advSel===s.id?' sel':''}" data-sid="${s.id}">
+      <div class="sav">${s.name[0]}</div>
+      <div style="flex:1;min-width:0;"><div class="sn">${s.name}</div><div class="se">${s.email}</div></div>
+      <div class="sm">${s.dept||'—'}</div>
+    </div>`).join(''):'<p style="color:var(--m);text-align:center;padding:20px;">لا يوجد طلاب مسجّلون بعد</p>';
+  document.querySelectorAll('#adv-sl2 .sr').forEach(row=>row.addEventListener('click',()=>advSel(row.dataset.sid)));
+}
+
+function togAdv(){if(_advStu.length<=3)return;_advAll=!_advAll;renderAdvList();}
+
+function advSel(sid){
+  _advSel=sid;_advRem=false;renderAdvList();
+  const s=_advStu.find(x=>x.id===sid);if(!s)return;
+  document.getElementById('adv-det').style.display='block';
+  setEl('adv-dn2',`تفاصيل — ${s.name}`);
+  document.getElementById('adv-dc').innerHTML='<p style="color:var(--m);text-align:center;padding:16px;">جارٍ التحميل...</p>';
+  if(window.FB?.ready){
+    const unsb=window.FB.watchReports(sid,snap=>{
+      const reps=snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(a.weekNum||0)-(b.weekNum||0));
+      renderAdvDet(s,reps);
+    });
+    _unsub.push(unsb);
+  }
+  document.getElementById('adv-det').scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
+function renderAdvDet(s,reps){
+  const rem=reps.filter(r=>r.status!=='مكتمل');
+  document.getElementById('adv-rem').textContent=_advRem?`− إخفاء (${rem.length})`:`+ المتبقية (${rem.length})`;
+  const toShow=_advRem?reps:reps.filter(r=>r.status==='مكتمل');
+  document.getElementById('adv-dc').innerHTML=`
+    <div class="tw"><table>
+      <thead><tr><th>التقرير</th><th>الاستحقاق</th><th>الحالة</th><th>اعتماد المشرف</th><th>التقييم</th><th>إجراء</th></tr></thead>
+      <tbody>${toShow.map(r=>`<tr>
+        <td>${r.reportTitle||'—'}</td>
+        <td style="direction:ltr;text-align:right;">${r.dueDate||'—'}</td>
+        <td>${bdg(r.status)}</td>
+        <td>${r.supervisorStatus?bdg(r.supervisorStatus):'<span style="color:var(--m);">—</span>'}</td>
+        <td>${strs(r.rating||null)}</td>
+        <td>
+          <button class="btn b-v b-sm" data-v-rid="${r.id}">عرض 📄</button>
+          ${r.supervisorStatus==='معتمد'?`<button class="btn b-s b-sm" style="margin-top:4px;" data-rate-rid="${r.id}">تقييم ⭐</button>`:''}
+        </td>
+      </tr>`).join('')}
+      </tbody>
+    </table></div>
+    <div id="adv-rate-frm" class="card" style="display:none;margin-top:12px;background:#F9F7FF;"></div>`;
+  document.querySelectorAll('[data-v-rid]').forEach(b=>b.addEventListener('click',()=>{const r=reps.find(x=>x.id===b.getAttribute('data-v-rid'));if(r)openRepView(s,r);}));
+  document.querySelectorAll('[data-rate-rid]').forEach(b=>b.addEventListener('click',()=>{const r=reps.find(x=>x.id===b.getAttribute('data-rate-rid'));if(r)openAdvRate(s,r);}));
+}
+
+function togAdvRem(){_advRem=!_advRem;if(_advSel)advSel(_advSel);}
+
+function openAdvRate(s,r){
+  const frm=document.getElementById('adv-rate-frm');frm.style.display='block';
+  _pStar=r.rating||0;
+  frm.innerHTML=`<div style="font-weight:700;font-size:14px;margin-bottom:10px;">تقييم ${r.reportTitle} — ${s.name}</div>
+    <div class="fl">التقييم من 5 نجوم:</div>
+    <div class="stsrow" id="adf-st">${[1,2,3,4,5].map(i=>`<span class="sts${_pStar>=i?' on':''}" data-v="${i}">★</span>`).join('')}</div>
+    <div class="fl" style="margin-top:10px;">تعليق</div>
+    <textarea class="fi" id="adf-cm" rows="2">${r.comment||''}</textarea>
+    <button class="btn b-p b-sm" id="adf-sv">حفظ التقييم</button>`;
+  document.querySelectorAll('#adf-st .sts').forEach(star=>{
+    star.addEventListener('click',()=>{_pStar=parseInt(star.dataset.v);document.querySelectorAll('#adf-st .sts').forEach((s2,i)=>s2.classList.toggle('on',i<_pStar));});
+    star.addEventListener('mouseover',()=>{const v=parseInt(star.dataset.v);document.querySelectorAll('#adf-st .sts').forEach((s2,i)=>s2.classList.toggle('hv',i<v));});
+    star.addEventListener('mouseout',()=>document.querySelectorAll('#adf-st .sts').forEach(s2=>s2.classList.remove('hv')));
+  });
+  document.getElementById('adf-sv').onclick=async()=>{
+    if(!_pStar){toast('اختر تقييماً');return;}
+    const cm=(document.getElementById('adf-cm')?.value||'').trim();
+    if(window.FB?.ready)await window.FB.updateDoc('reports',r.id,{rating:_pStar,comment:cm,status:'مكتمل'});
+    frm.style.display='none';
+    toast(`✅ تم حفظ التقييم: ${'★'.repeat(_pStar)} (${_pStar}/5)`);
+  };
+  frm.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
+function openRepView(s,r){
+  const c=r.content||{};
+  document.getElementById('mr-ti').textContent=`${r.reportTitle} — ${s.name}`;
+  document.getElementById('mr-bd').innerHTML=`
+    <div class="rs"><h4>بيانات التدريب</h4>
+      <div class="rig">
+        <div class="rit"><div class="ril">الطالب</div><div class="riv">${s.name}</div></div>
+        <div class="rit"><div class="ril">القسم</div><div class="riv">${s.dept||'—'}</div></div>
+        <div class="rit"><div class="ril">جهة التدريب</div><div class="riv">${s.company||'—'}</div></div>
+        <div class="rit"><div class="ril">الأسبوع</div><div class="riv">${r.weekNum}</div></div>
+      </div>
+    </div>
+    <div class="rs"><h4>تفاصيل التدريب</h4>
+      <div class="fl">1) الهدف</div><div class="rv">${c.goal||'لم يُدخَل بعد'}</div>
+      <div class="fl">2) المهام</div><div class="rv" style="white-space:pre-line;">${c.tasks||'—'}</div>
+      <div class="fl">3) البرامج</div><div class="rv">${c.programs||'—'}</div>
+      <div class="fl">4) الفوائد</div><div class="rv">${c.benefits||'—'}</div>
+      <div class="fl">5) الاقتراحات</div><div class="rv">${c.suggestions||'—'}</div>
+    </div>`;
+  document.getElementById('mr-ft').innerHTML=`<button class="btn" style="background:#EEE;color:#555;" onclick="closeM('m-rep')">إغلاق</button>`;
+  openM('m-rep');
+}
+
+function renderAdvFinals(fins){
+  const el=document.getElementById('adv-fins');
+  if(!fins.length){el.innerHTML='<p style="text-align:center;color:var(--m);padding:20px;">لا توجد تقارير نهائية محالة بعد</p>';return;}
+  el.innerHTML=fins.map(f=>`
+    <div style="padding:14px;border-radius:12px;background:#F9F7FF;border:1px solid var(--b);margin-bottom:12px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+      <div class="sav">${(f.studentName||'?')[0]}</div>
+      <div style="flex:1;"><div style="font-weight:700;">${f.studentName||'—'}</div><div style="font-size:12px;color:var(--m);">${f.title||'—'}</div></div>
+      ${bdg('معتمد')}
+      <button class="btn b-v b-sm" data-fid="${f.id}">عرض</button>
+    </div>`).join('');
+  el.querySelectorAll('[data-fid]').forEach(b=>b.addEventListener('click',()=>viewFinalMod(b.dataset.fid)));
+}
+
+/* ──── SUPERVISOR ──── */
+function buildSup(){
+  if(!CU){show('sr');return;}
+  setEl('sup-nm',CU.name||'مشرف التدريب');setEl('sup-av',(CU.name||'م')[0]);
+  _supAll=false;_supSel=null;
+  document.getElementById('sup-rc').style.display='none';document.getElementById('sup-fp').style.display='none';
+  if(!window.FB?.ready)return;
+  _unsub.push(window.FB.watchAllStudents(snap=>{
+    _supStu=snap.docs.map(d=>({id:d.id,...d.data()}));
+    setEl('sup-tot',_supStu.length);setEl('sup-sl',`${_supStu.length} طالب`);
+    renderSupList();
+  }));
+  loadAdvForSup();
+}
+
+async function loadAdvForSup(){
+  if(!window.FB?.ready)return;
+  _unsub.push(window.FB.watchAllAdvisors(snap=>{
+    const advs=snap.docs.map(d=>({id:d.id,...d.data()}));
+    document.getElementById('adv-cl').innerHTML=advs.length?advs.map(a=>`
+      <div class="ar">
+        <div class="arav">${(a.name||'م')[0]}</div>
+        <div style="flex:1;"><div style="font-weight:700;">${a.name}</div><div style="font-size:12px;color:var(--m);">📧 ${a.email}</div></div>
+        <button class="btn b-p b-sm" data-cid="${a.id}" data-cnm="${a.name}">💬 مراسلة</button>
+      </div>`).join(''):'<p style="text-align:center;color:var(--m);padding:16px;">لا يوجد مرشدون</p>';
+    document.querySelectorAll('#adv-cl [data-cid]').forEach(b=>b.addEventListener('click',()=>openChatWith(b.dataset.cid,b.dataset.cnm)));
+  }));
+}
+
+function renderSupList(){
+  const SHOW=4,toShow=_supAll?_supStu:_supStu.slice(0,SHOW);
+  document.getElementById('sup-exp').textContent=(_supAll&&_supStu.length>SHOW)?'−':'+';
+  document.getElementById('sup-sl2').innerHTML=toShow.length?toShow.map(s=>`
+    <div class="sr${_supSel===s.id?' sel':''}" data-sid="${s.id}">
+      <div class="sav">${s.name[0]}</div>
+      <div style="flex:1;"><div class="sn">${s.name}</div><div class="se">${s.email}</div></div>
+      <div class="sm">${s.company||'—'}</div>
+    </div>`).join(''):'<p style="color:var(--m);text-align:center;padding:20px;">لا يوجد متدربون بعد</p>';
+  document.querySelectorAll('#sup-sl2 .sr').forEach(row=>row.addEventListener('click',()=>supSel(row.dataset.sid)));
+}
+
+function togSup(){if(_supStu.length<=4)return;_supAll=!_supAll;renderSupList();}
+
+function supSel(sid){
+  _supSel=sid;renderSupList();
+  const s=_supStu.find(x=>x.id===sid);if(!s)return;
+  setEl('sup-rt',`تقارير — ${s.name}`);
+  document.getElementById('sup-rc').style.display='block';
+  document.getElementById('sup-rct').innerHTML='<p style="color:var(--m);padding:16px;text-align:center;">جارٍ التحميل...</p>';
+  if(window.FB?.ready){
+    const unsb=window.FB.watchReports(sid,snap=>{
+      const reps=snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(a.weekNum||0)-(b.weekNum||0));
+      renderSupReps(s,reps);
+    });
+    _unsub.push(unsb);
+  }
+  document.getElementById('sup-rc').scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
+function renderSupReps(s,reps){
+  const sub=reps.filter(r=>r.status==='مُرسَل'||r.status==='قيد التنفيذ');
+  if(!sub.length){document.getElementById('sup-rct').innerHTML='<p style="color:var(--m);padding:16px;text-align:center;">لم يرفع الطالب أي تقارير بعد</p>';return;}
+  document.getElementById('sup-rct').innerHTML=`
+    <div class="tw"><table>
+      <thead><tr><th>التقرير</th><th>الأسبوع</th><th>الاستحقاق</th><th>الحالة</th><th>الاعتماد</th><th>إجراء</th></tr></thead>
+      <tbody>${sub.map(r=>`<tr>
+        <td><button class="btn b-v b-sm" data-vr="${r.id}">${r.reportTitle}</button></td>
+        <td>الأسبوع ${r.weekNum}</td>
+        <td style="direction:ltr;text-align:right;">${r.dueDate||'—'}</td>
+        <td>${bdg(r.status)}</td>
+        <td>${r.supervisorStatus?bdg(r.supervisorStatus):'<span style="color:var(--m);">بانتظار المراجعة</span>'}</td>
+        <td style="display:flex;gap:6px;flex-wrap:wrap;padding:8px 18px;">
+          ${!r.supervisorStatus?`<button class="btn b-a b-sm" data-ar="${r.id}">اعتماد ✅</button><button class="btn b-r b-sm" data-dr="${r.id}">رفض ❌</button>`:'<span style="font-size:12px;color:var(--m);">تمت المعالجة</span>'}
+        </td>
+      </tr>`).join('')}
+      </tbody>
+    </table></div>
+    <div id="decl-f" class="card" style="display:none;margin-top:12px;background:#FFF8E1;border:1.5px solid #FFE082;"></div>`;
+  document.querySelectorAll('[data-vr]').forEach(b=>b.addEventListener('click',()=>{const r=reps.find(x=>x.id===b.dataset.vr);if(r)openRepView(s,r);}));
+  document.querySelectorAll('[data-ar]').forEach(b=>b.addEventListener('click',()=>supAppr(reps.find(x=>x.id===b.dataset.ar),true,'')));
+  document.querySelectorAll('[data-dr]').forEach(b=>b.addEventListener('click',()=>{
+    const r=reps.find(x=>x.id===b.dataset.dr);
+    const df=document.getElementById('decl-f');df.style.display='block';
+    df.innerHTML=`<div style="font-weight:700;margin-bottom:10px;">رفض ${r?.reportTitle} — أضف ملاحظة للطالب</div>
+      <textarea class="fi" id="dc-cm" rows="3" placeholder="اذكر الأخطاء التي يجب تصحيحها..."></textarea>
+      <div style="display:flex;gap:8px;margin-top:8px;">
+        <button class="btn b-r b-sm" id="dc-cf">تأكيد الرفض وإرسال للطالب</button>
+        <button class="btn b-sm" style="background:#EEE;color:#555;" onclick="document.getElementById('decl-f').style.display='none'">إلغاء</button>
+      </div>`;
+    document.getElementById('dc-cf').onclick=()=>{
+      const cm=document.getElementById('dc-cm')?.value.trim();
+      if(!cm){toast('يرجى كتابة ملاحظة للطالب');return;}
+      supAppr(r,false,cm);df.style.display='none';
+    };
+    df.scrollIntoView({behavior:'smooth',block:'nearest'});
+  }));
+}
+
+async function supAppr(r,approve,comment){
+  if(!r)return;
+  const upd=approve?{supervisorStatus:'معتمد',supervisorComment:''}:{supervisorStatus:'مرفوض',supervisorComment:comment,status:'مرفوض'};
+  if(window.FB?.ready)await window.FB.updateDoc('reports',r.id,upd);
+  toast(approve?`✅ تم اعتماد ${r.reportTitle}`:`❌ تم رفض ${r.reportTitle} — أُرسلت الملاحظة للطالب`);
+}
+
+function togAdvPan(){_advPan=!_advPan;document.getElementById('adv-pan').style.display=_advPan?'block':'none';document.getElementById('sup-ac').classList.toggle('ac',_advPan);}
+
+function openSupFins(){
+  const panel=document.getElementById('sup-fp');panel.style.display='block';
+  if(!window.FB?.ready)return;
+  _unsub.push(window.FB.watchFinals(snap=>{
+    const fins=snap.docs.map(d=>({id:d.id,...d.data()})).filter(f=>f.status==='sent'||f.status==='approved');
+    if(!fins.length){document.getElementById('sup-fc').innerHTML='<p style="text-align:center;color:var(--m);padding:20px;">لا توجد تقارير نهائية بعد</p>';return;}
+    document.getElementById('sup-fc').innerHTML=fins.map(f=>`
+      <div style="padding:16px;border-radius:12px;background:#F9F7FF;border:1px solid var(--b);margin-bottom:14px;">
+        <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:10px;">
+          <div class="sav">${(f.studentName||'?')[0]}</div>
+          <div style="flex:1;"><div style="font-weight:700;">${f.studentName||'—'}</div><div style="font-size:12px;color:var(--m);">${f.title||'—'}</div></div>
+          ${bdg(f.status==='approved'?'معتمد':'مُرسَل')}
+          <button class="btn b-v b-sm" data-fv="${f.id}">عرض</button>
+        </div>
+        <div style="font-size:13px;padding:10px;background:#fff;border-radius:8px;margin-bottom:10px;"><strong>المستخلص:</strong> ${f.abstract||'—'}</div>
+        ${f.status==='sent'?`
+          <div style="border-top:1px solid var(--b);padding-top:12px;">
+            <div style="font-weight:700;margin-bottom:10px;">رفع التقييم النهائي</div>
+            <div class="eg">
+              <div class="ei"><label>الأداء العام</label><select id="ev-o-${f.id}"><option value="5">5-ممتاز</option><option value="4">4-جيد جداً</option><option value="3">3-جيد</option><option value="2">2-مقبول</option><option value="1">1-ضعيف</option></select></div>
+              <div class="ei"><label>الالتزام</label><select id="ev-a-${f.id}"><option value="5">5-ممتاز</option><option value="4">4-جيد جداً</option><option value="3">3-جيد</option><option value="2">2-مقبول</option><option value="1">1-ضعيف</option></select></div>
+              <div class="ei"><label>جودة العمل</label><select id="ev-q-${f.id}"><option value="5">5-ممتاز</option><option value="4">4-جيد جداً</option><option value="3">3-جيد</option><option value="2">2-مقبول</option><option value="1">1-ضعيف</option></select></div>
+              <div class="ei"><label>السلوك المهني</label><select id="ev-b-${f.id}"><option value="5">5-ممتاز</option><option value="4">4-جيد جداً</option><option value="3">3-جيد</option><option value="2">2-مقبول</option><option value="1">1-ضعيف</option></select></div>
+            </div>
+            <textarea class="fi" id="ev-c-${f.id}" rows="2" placeholder="ملاحظات إضافية..."></textarea>
+            <button class="btn b-p b-sm" data-se="${f.id}">إرسال التقييم للمرشد الأكاديمي 📤</button>
+          </div>`:`<div style="background:#D4EDDA;border-radius:8px;padding:10px;font-size:13px;color:#1B6B35;">✅ تم إرسال التقييم للمرشد الأكاديمي</div>`}
+      </div>`).join('');
+    document.querySelectorAll('[data-fv]').forEach(b=>b.addEventListener('click',()=>viewFinalMod(b.dataset.fv)));
+    document.querySelectorAll('[data-se]').forEach(b=>b.addEventListener('click',()=>submitSupEval(b.dataset.se)));
+  }));
+  panel.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
+async function submitSupEval(fid){
+  const overall=parseInt(document.getElementById(`ev-o-${fid}`)?.value)||5;
+  const comment=(document.getElementById(`ev-c-${fid}`)?.value||'').trim();
+  if(window.FB?.ready)await window.FB.mergeFinal(fid,{status:'approved',supervisorEval:{overall,comment},approvedAt:new Date().toISOString()});
+  toast('✅ تم إرسال التقييم النهائي للمرشد الأكاديمي');
+}
+
+function viewFinalMod(fid){
+  document.getElementById('mr-ti').textContent='التقرير النهائي';
+  document.getElementById('mr-bd').innerHTML='<p style="text-align:center;color:var(--m);padding:20px;">جارٍ التحميل...</p>';
+  document.getElementById('mr-ft').innerHTML=`<button class="btn" style="background:#EEE;color:#555;" onclick="closeM('m-rep')">إغلاق</button>`;
+  openM('m-rep');
+  if(window.FB?.ready){
+    const unsb=window.FB.watchFinals(snap=>{
+      const f=snap.docs.find(d=>d.id===fid)?.data();
+      if(!f){document.getElementById('mr-bd').innerHTML='<p style="color:var(--m);padding:20px;">لم يتم العثور على التقرير</p>';return;}
+      document.getElementById('mr-bd').innerHTML=`
+        <div class="rs"><h4>بيانات الطالب</h4>
+          <div class="rig"><div class="rit"><div class="ril">الاسم</div><div class="riv">${f.studentName||'—'}</div></div>
+          <div class="rit"><div class="ril">الحالة</div><div class="riv">${bdg(f.status==='approved'?'معتمد':'مُرسَل')}</div></div></div>
+        </div>
+        <div class="rs"><h4>العنوان</h4><div class="rv">${f.title||'—'}</div>
+          <h4 style="margin-top:12px;">المستخلص</h4><div class="rv">${f.abstract||'—'}</div>
+        </div>
+        ${f.supervisorEval?`<div class="rs"><h4>تقييم المشرف</h4><div class="rv">الأداء الكلي: ${strs(f.supervisorEval.overall,16)}<br>ملاحظات: ${f.supervisorEval.comment||'—'}</div></div>`:''}`;
+      unsb();
+    });
+  }
+}
+
+/* ══════════════ USER MANAGEMENT (ADVISOR) ══════════════ */
+function openUsrMgmt(){
+  ['u-nm','u-em','u-pw'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
+  document.getElementById('u-rl').value='';document.getElementById('sf').style.display='none';
+  document.getElementById('u-er').textContent='';document.getElementById('u-sc').style.display='none';
+  swTab('add');openM('m-usr');
+}
+function swTab(t){
+  document.getElementById('p-add').style.display=t==='add'?'block':'none';
+  document.getElementById('p-lst').style.display=t==='list'?'block':'none';
+  document.getElementById('t-add').classList.toggle('active',t==='add');
+  document.getElementById('t-lst').classList.toggle('active',t==='list');
+  if(t==='list')renderUsrList('all');
+}
+function toggleSF(){document.getElementById('sf').style.display=document.getElementById('u-rl').value==='student'?'block':'none';}
+function filterU(el,role){document.querySelectorAll('.ft').forEach(b=>b.classList.toggle('active',b.dataset.r===role));renderUsrList(role);}
+
+async function renderUsrList(rf){
+  const el=document.getElementById('u-lst');
+  if(!window.FB?.ready){el.innerHTML='<p style="text-align:center;color:var(--m);padding:16px;">Firebase غير متصل</p>';return;}
+  el.innerHTML='<p style="text-align:center;color:var(--m);padding:16px;">جارٍ التحميل...</p>';
+  try{
+    const snap=await window.FB.getAllUsers();
+    let users=snap.docs.map(d=>({id:d.id,...d.data()}));
+    if(rf!=='all')users=users.filter(u=>u.role===rf);
+    if(!users.length){el.innerHTML='<p style="text-align:center;color:var(--m);padding:16px;">لا يوجد مستخدمون</p>';return;}
+    const rc={student:'rb-s',advisor:'rb-a',supervisor:'rb-u'};
+    const rl={student:'طالب',advisor:'مرشد',supervisor:'مشرف'};
+    el.innerHTML=users.map(u=>`
+      <div class="ur">
+        <div class="sav" style="background:var(--p);color:#fff;">${(u.name||'?')[0]}</div>
+        <div style="flex:1;min-width:0;"><div style="font-weight:700;">${u.name||'—'}</div><div style="font-size:12px;color:var(--m);">${u.email||'—'}</div>${u.dept?`<div style="font-size:12px;color:var(--m);">${u.dept}</div>`:''}</div>
+        <span class="rb ${rc[u.role]||''}">${rl[u.role]||u.role}</span>
+        <button class="btn b-r b-sm" data-du="${u.id}" data-dn="${u.name||''}">🗑️</button>
+      </div>`).join('');
+    el.querySelectorAll('[data-du]').forEach(b=>b.addEventListener('click',()=>{if(confirm(`حذف "${b.dataset.dn}"؟`))delUser(b.dataset.du,b.dataset.dn);}));
+  }catch(e){el.innerHTML=`<p style="color:red;padding:16px;">${e.message}</p>`;}
+}
+
+async function createUser(){
+  const nm=document.getElementById('u-nm').value.trim(),em=document.getElementById('u-em').value.trim();
+  const pw=document.getElementById('u-pw').value.trim(),rl=document.getElementById('u-rl').value;
+  const er=document.getElementById('u-er'),sc=document.getElementById('u-sc');
+  er.textContent='';sc.style.display='none';
+  if(!nm||!em||!pw||!rl){er.textContent='يرجى ملء جميع الحقول الإلزامية';return;}
+  if(pw.length<8){er.textContent='كلمة المرور يجب أن تكون 8 أحرف على الأقل';return;}
+  if(!window.FB?.ready){er.textContent='Firebase غير متصل';return;}
+  const btn=document.querySelector('#p-add .btn');btn.disabled=true;btn.textContent='جارٍ الإنشاء...';
+  try{
+    const ud={name:nm,email:em,role:rl};
+    if(rl==='student'){ud.advisorId=CU.id;ud.dept=document.getElementById('u-dp').value.trim();ud.company=document.getElementById('u-co').value.trim();ud.companyDept=document.getElementById('u-cd').value.trim();}
+    const uid=await window.FB.createAuth(em,pw);
+    await window.FB.setUser(uid,ud);
+    if(rl==='student'){
+      const count=parseInt(document.getElementById('u-rc').value)||10;
+      const rn=['الأول','الثاني','الثالث','الرابع','الخامس','السادس','السابع','الثامن','التاسع','العاشر'];
+      for(let i=0;i<Math.min(count,10);i++){
+        await window.FB.addDoc('reports',{studentId:uid,studentName:nm,advisorId:CU.id,reportTitle:`التقرير ${rn[i]}`,weekNum:i+1,dueDate:'',status:'معلق',supervisorStatus:null,supervisorComment:'',rating:null,comment:''});
+      }
+    }
+    sc.textContent=`✅ تم إنشاء حساب ${nm} بنجاح`;sc.style.display='block';
+    ['u-nm','u-em','u-pw'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
+    document.getElementById('u-rl').value='';document.getElementById('sf').style.display='none';
+    toast(`✅ تم إنشاء حساب ${nm}`);
+  }catch(e){er.textContent=e.code==='auth/email-already-in-use'?'❌ هذا البريد مسجّل مسبقاً':'❌ '+e.message;}
+  finally{btn.disabled=false;btn.textContent='إنشاء الحساب ✅';}
+}
+
+async function delUser(uid,name){
+  if(!window.FB?.ready)return;
+  try{await window.FB.deleteDoc('users',uid);toast(`🗑️ تم حذف ${name}`);renderUsrList(document.querySelector('.ft.active')?.dataset.r||'all');}
+  catch(e){toast('❌ '+e.message);}
+}
+
+/* ══════════════ CHAT ══════════════ */
+function getChatCtx(){
+  if(!CU)return[];
+  if(CR==='student'){if(!CU.advisorId)return[];return[{id:CU.advisorId,name:'المرشد الأكاديمي',role:'مرشد'}];}
+  if(CR==='advisor')return[..._advStu.map(s=>({id:s.id,name:s.name,role:'طالب'})),{id:'sup_placeholder',name:'مشرف التدريب',role:'مشرف'}];
+  if(CR==='supervisor')return _supStu.slice(0,15).map(s=>({id:s.id,name:s.name,role:'طالب'}));
+  return[];
+}
+function openChat(){_chatCtx=getChatCtx();renderChatCtx();_chatConv=null;document.getElementById('c-msgs').innerHTML='<div class="cempty">اختر محادثة</div>';openM('m-chat');}
+function openChatWith(cid2,cnm){openChat();setTimeout(()=>selChat(cid2,cnm),100);}
+function renderChatCtx(){
+  const el=document.getElementById('cc-list');
+  if(!_chatCtx.length){el.innerHTML='<div class="cempty" style="padding:20px;">لا توجد محادثات</div>';return;}
+  el.innerHTML=_chatCtx.map(c=>`
+    <div class="ci${_chatConv===cid(CU?.id,c.id)?' ca':''}" data-cid="${c.id}" data-cnm="${c.name}">
+      <div class="cn">${c.name}</div><div class="cr">${c.role}</div>
+    </div>`).join('');
+  el.querySelectorAll('.ci').forEach(i=>i.addEventListener('click',()=>selChat(i.dataset.cid,i.dataset.cnm)));
+}
+function selChat(contactId,contactName){
+  if(!CU)return;
+  _chatConv=cid(CU.id,contactId);
+  document.querySelectorAll('.ci').forEach(i=>i.classList.toggle('ca',i.dataset.cid===contactId));
+  document.getElementById('c-msgs').innerHTML='<div class="cempty">جارٍ التحميل...</div>';
+  if(_chatUnsub){try{_chatUnsub();}catch(e){}}
+  if(window.FB?.ready){
+    _chatUnsub=window.FB.watchMsgs(_chatConv,snap=>{
+      const msgs=snap.docs.map(d=>({id:d.id,...d.data()}));
+      renderMsgs(msgs);
+    });
+  }
+}
+function renderMsgs(msgs){
+  const area=document.getElementById('c-msgs');
+  if(!msgs.length){area.innerHTML='<div class="cempty">ابدأ المحادثة</div>';return;}
+  area.innerHTML=msgs.map(m=>{
+    const mine=m.from===CU?.id;
+    return`<div><div class="cm ${mine?'mine':'theirs'}">${m.text}</div><div class="cmt" style="text-align:${mine?'left':'right'}">${mine?'أنت':m.fromName||''} · ${m.time||''}</div></div>`;
+  }).join('');
+  area.scrollTop=area.scrollHeight;
+}
+async function sendMsg(){
+  const inp=document.getElementById('c-inp'),text=inp?.value?.trim();
+  if(!text||!_chatConv||!CU)return;
+  const msg={from:CU.id,fromName:CU.name||'أنت',text,time:nowt()};
+  inp.value='';
+  if(window.FB?.ready)await window.FB.addMsg(_chatConv,msg);
+}
+async function sendBC(){
+  const text=document.getElementById('bc-txt')?.value.trim();
+  const err=document.getElementById('bc-err');
+  if(!text){err.textContent='يرجى كتابة رسالة';return;}
+  if(!_advStu.length){err.textContent='لا يوجد طلاب';return;}
+  err.textContent='';
+  if(window.FB?.ready){
+    for(const s of _advStu){
+      const convId=cid(CU.id,s.id);
+      await window.FB.addMsg(convId,{from:CU.id,fromName:CU.name||'المرشد',text,time:nowt()});
+    }
+  }
+  document.getElementById('bc-txt').value='';
+  closeM('m-bc');
+  toast(`✅ تم إرسال الرسالة لـ ${_advStu.length} طالب`);
+}
+</script>
+</body>
+</html>
