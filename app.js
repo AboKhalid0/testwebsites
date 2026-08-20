@@ -10,7 +10,7 @@ const games = {
   pattern: { id: 'pattern', title: 'سرّ النمط', icon: '◈', skill: 'الملاحظة', color: '#fff1bf', description: 'شاهد التسلسل واختر الشكل الذي يُكمله.', metric: 'أنماط صحيحة' },
   sudoku: { id: 'sudoku', title: 'سودوكو النجوم', icon: '🔢', skill: 'التركيز والمنطق', color: '#d8f0dc', description: 'حل شبكات متدرجة، وسجل ملاحظاتك واستعمل التلميحات بحكمة.', metric: 'أفضل وقت' },
   chess: { id: 'chess', title: 'نادي الشطرنج', icon: '♟', skill: 'التخطيط الاستراتيجي', color: '#d9d5fb', description: 'واجه الكمبيوتر أو لاعبًا بجانبك بقواعد الشطرنج الكاملة.', metric: 'الانتصارات' },
-  animals: { id: 'animals', title: 'مواضع الحيوانات', icon: '🐰', skill: 'الاستنتاج المنطقي', color: '#ffe3ba', description: 'ضع حيوانًا واحدًا في كل لون وصف وعمود، من دون تلامس.', metric: 'المراحل المكتملة' },
+  animals: { id: 'animals', title: 'لعبة القط', icon: '🐱', skill: 'الاستنتاج المنطقي', color: '#ffe3ba', description: 'اكتشف مكان قط واحد في كل منطقة لونية، من دون تلامس.', metric: 'المراحل المكتملة' },
   logic: { id: 'logic', title: 'مختبر التفكير', icon: '🧠', skill: 'التفكير الحاسوبي', color: '#dcecff', description: 'مكتبة ألغاز أصلية عن القواعد والخطوات والبيانات والمكان.', metric: 'الألغاز المحلولة' },
 };
 
@@ -23,7 +23,7 @@ const achievementDefs = [
   { id: 'champion', icon: '♡', title: 'بطل اليوم', description: 'أكمل المهمات اليومية الثلاث.', check: s => dailyCompleted(s) >= 3 },
   { id: 'sudokuStar', icon: '🔢', title: 'سيد الأرقام', description: 'أكمل ثلاث مراحل من سودوكو النجوم.', check: s => completedLevels(s, 'sudoku') >= 3 },
   { id: 'chessWin', icon: '♟', title: 'كش ملك', description: 'اربح مباراة شطرنج ضد الكمبيوتر.', check: s => (s.games.chess?.chess?.wins || 0) >= 1 },
-  { id: 'animalGuide', icon: '🐰', title: 'صديق الحيوانات', description: 'أكمل خمس مراحل من مواضع الحيوانات.', check: s => completedLevels(s, 'animals') >= 5 },
+  { id: 'animalGuide', icon: '🐱', title: 'صديق القطط', description: 'أكمل خمس مراحل من لعبة القط.', check: s => completedLevels(s, 'animals') >= 5 },
   { id: 'logicMind', icon: '🧠', title: 'ذهن منظّم', description: 'حل ستة ألغاز من مختبر التفكير.', check: s => completedLevels(s, 'logic') >= 6 },
 ];
 
@@ -52,25 +52,11 @@ function showToast(message) { const el = $('#toast'); el.textContent = message; 
 function addActivity(text) { state.activities.unshift({ text, at: new Date().toISOString() }); state.activities = state.activities.slice(0, 8); }
 function markPlayedToday() { const date = todayKey(); if (!state.days.includes(date)) state.days.push(date); state.days = state.days.slice(-100); }
 
-function switchPage(page) {
-  if (page !== 'play' && session) {
-    clearInterval(session.timer);
-    clearInterval(session.limitTimer);
-    if (session.keyHandler) document.removeEventListener('keydown', session.keyHandler);
-  }
-  $$('.page').forEach(el => el.classList.toggle('active-page', el.id === page));
-  $$('.tab').forEach(el => el.classList.toggle('active', el.dataset.page === page || (page === 'play' && false)));
-  if (page === 'stats') renderStats();
-  if (page === 'achievements') renderAchievements();
-  if (page === 'settings') renderSettings();
-  if (page === 'home') renderHome();
-  window.scrollTo({ top: 0, behavior: 'smooth' });
-}
-
+function switchPage(page) { $$('.page').forEach(el => el.classList.toggle('active-page', el.id === page)); $$('.tab').forEach(el => el.classList.toggle('active', el.dataset.page === page || (page === 'play' && false))); if (page === 'stats') renderStats(); if (page === 'achievements') renderAchievements(); if (page === 'settings') renderSettings(); if (page === 'home') renderHome(); window.scrollTo({ top: 0, behavior: 'smooth' }); }
 function getTopSkill() { const ranked = Object.entries(state.games).map(([id, data]) => ({ ...games[id], value: data.correct + data.completed * 2 })).sort((a, b) => b.value - a.value); return ranked[0]?.value ? ranked[0] : null; }
 
-function gameMetricValue(game) { const data = state.games[game.id]; if (game.id === 'sudoku') { const best = Object.values(data.levels || {}).map(level => level.bestTime).filter(Boolean); return best.length ? fmtTime(Math.min(...best)) : '—'; } if (game.id === 'chess') return data.chess?.wins || 0; if (game.id === 'animals' || game.id === 'logic') return `${completedLevels(state, game.id)} / 30`; return data.bestScore || '—'; }
-function gameProgressLabel(game) { if (['sudoku', 'animals', 'logic'].includes(game.id)) return `المراحل: ${completedLevels(state, game.id)} / 30`; if (game.id === 'chess') return `المباريات: ${(state.games.chess.chess?.wins || 0) + (state.games.chess.chess?.losses || 0) + (state.games.chess.chess?.draws || 0)}`; return `مكتمل: ${state.games[game.id].completed}`; }
+function gameMetricValue(game) { const data = state.games[game.id]; if (game.id === 'sudoku') { const best = Object.values(data.levels || {}).map(level => level.bestTime).filter(Boolean); return best.length ? fmtTime(Math.min(...best)) : '—'; } if (game.id === 'chess') return data.chess?.wins || 0; if (game.id === 'animals') return `${completedLevels(state, game.id)} / 50`; if (game.id === 'logic') return `${completedLevels(state, game.id)} / 30`; return data.bestScore || '—'; }
+function gameProgressLabel(game) { if (game.id === 'animals') return `المراحل: ${completedLevels(state, game.id)} / 50`; if (['sudoku', 'logic'].includes(game.id)) return `المراحل: ${completedLevels(state, game.id)} / 30`; if (game.id === 'chess') return `المباريات: ${(state.games.chess.chess?.wins || 0) + (state.games.chess.chess?.losses || 0) + (state.games.chess.chess?.draws || 0)}`; return `مكتمل: ${state.games[game.id].completed}`; }
 function gameCard(game, directory = false) { return `<article class="game-card ${directory ? 'directory-card window-frame' : ''}" style="--game-color:${game.color}"><div class="game-icon">${game.icon}</div><h3>${game.title}</h3>${directory ? `<span class="skill-tag">يدرب: ${game.skill}</span>` : ''}<p>${game.description}</p>${directory ? `<div class="best-label">${game.metric}: <b>${gameMetricValue(game)}</b><small>${gameProgressLabel(game)}</small></div>` : `<footer><span>${game.skill}</span><span>+ نقاط ✦</span></footer>`}<button class="pixel-button play-game" data-game="${game.id}">ابدأ التحدي ${directory ? '✦' : '←'}</button></article>`; }
 
 function renderHome() {
@@ -126,18 +112,7 @@ function checkMath() { const input = $('#math-answer'); const answer = Number(in
 const words = [{ word: 'ذاكرة', hint: 'نحتاجها لتذكر الأشياء' }, { word: 'تركيز', hint: 'يساعدك على الانتباه' }, { word: 'منطق', hint: 'أداة لحل المشكلات' }, { word: 'لغز', hint: 'تبحث عن حلّه هنا' }, { word: 'نمط', hint: 'تسلسل له قاعدة' }, { word: 'نجمة', hint: 'تكسبين واحدة عند النجاح' }];
 function shuffle(value) { const list = [...value]; for (let i = list.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [list[i], list[j]] = [list[j], list[i]]; } return list; }
 function startWord() { session.config = { round: 0, target: 6, pool: shuffle(words) }; nextWordRound(); }
-function nextWordRound() { 
-  const c = session.config; 
-  if (c.round >= c.target) return finishGame(session.correct >= 4); 
-  c.item = c.pool[c.round]; 
-  
-  let mixed = shuffle([...c.item.word]).join(''); 
-  while (mixed === c.item.word && c.item.word.length > 1) {
-    mixed = shuffle([...c.item.word]).join('');
-  }
-  
-  $('#game-area').innerHTML = `<div class="word-panel">${gameMeta(`<span>الكلمة ${c.round + 1} / ${c.target}</span><span>صحيح: <b>${session.correct}</b></span>`)}<p class="prompt-label">رتب الحروف لتكوين كلمة</p><div class="word-scramble">${mixed}</div><p class="word-hint">💡 تلميح: ${c.item.hint}</p><div class="answer-row"><input id="word-answer" class="answer-input" type="text" autocomplete="off" aria-label="الكلمة" /><button id="submit-word" class="pixel-button primary">تأكيد</button></div><p id="word-feedback" class="word-feedback"></p></div>`; const input = $('#word-answer'); input.focus(); $('#submit-word').addEventListener('click', checkWord); input.addEventListener('keydown', e => { if (e.key === 'Enter') checkWord(); }); 
-}
+function nextWordRound() { const c = session.config; if (c.round >= c.target) return finishGame(session.correct >= 4); c.item = c.pool[c.round]; let mixed = shuffle([...c.item.word]).join(''); if (mixed === c.item.word) mixed = [...c.item.word].reverse().join(''); $('#game-area').innerHTML = `<div class="word-panel">${gameMeta(`<span>الكلمة ${c.round + 1} / ${c.target}</span><span>صحيح: <b>${session.correct}</b></span>`)}<p class="prompt-label">رتب الحروف لتكوين كلمة</p><div class="word-scramble">${mixed}</div><p class="word-hint">💡 تلميح: ${c.item.hint}</p><div class="answer-row"><input id="word-answer" class="answer-input" type="text" autocomplete="off" aria-label="الكلمة" /><button id="submit-word" class="pixel-button primary">تأكيد</button></div><p id="word-feedback" class="word-feedback"></p></div>`; const input = $('#word-answer'); input.focus(); $('#submit-word').addEventListener('click', checkWord); input.addEventListener('keydown', e => { if (e.key === 'Enter') checkWord(); }); }
 function checkWord() { const input = $('#word-answer'); if (!input.value.trim()) return; const correct = input.value.trim().replace(/[إأآ]/g, 'ا') === session.config.item.word.replace(/[إأآ]/g, 'ا'); session.attempts++; session.config.round++; input.disabled = true; $('#submit-word').disabled = true; if (correct) { session.correct++; session.streak++; updateSessionScore(15 + session.streak * 2); $('#word-feedback').textContent = 'كلمة صحيحة، أحسنتِ! ✦'; } else { session.streak = 0; $('#word-feedback').textContent = `كانت الكلمة: ${session.config.item.word}`; } setTimeout(nextWordRound, 700); }
 
 const patterns = [
@@ -179,11 +154,8 @@ function hintSudoku() { const c = session.config; if (!c.hints) return; const in
 function checkSudoku() { const c = session.config; c.checks++; c.wrong = new Set(c.board.map((value, i) => value && value !== c.solution[i] ? i : -1).filter(i => i >= 0)); if (c.wrong.size) { session.attempts += c.wrong.size; showToast(`هناك ${c.wrong.size} خانات تحتاج مراجعة`); } else showToast('لا توجد أخطاء ظاهرة، أحسنت!'); renderSudoku(); }
 function finishSudoku() { const c = session.config; const stars = c.hints === 3 && !c.checks ? 3 : c.hints >= 1 ? 2 : 1; updateSessionScore(70 + c.level * 3 + stars * 10); finishGame(true, { level: c.level, stars, title: 'شبكة مكتملة!', message: `أكملت سودوكو المرحلة ${c.level} بتقييم ${'★'.repeat(stars)}.`, scoreLine: `${fmtTime(Math.max(1, Math.round((Date.now() - session.startedAt) / 1000)))} · ${c.hints} تلميحات متبقية` }); }
 
-/* محرك الشطرنج مع قطع SVG احترافية */
-const CHESS_URLS = { 
-  K: '4/42/Chess_klt45.svg', Q: '1/15/Chess_qlt45.svg', R: '7/72/Chess_rlt45.svg', B: 'b/b1/Chess_blt45.svg', N: '7/70/Chess_nlt45.svg', P: '4/45/Chess_plt45.svg', 
-  k: 'f/f0/Chess_kdt45.svg', q: '4/47/Chess_qdt45.svg', r: 'f/ff/Chess_rdt45.svg', b: '9/98/Chess_bdt45.svg', n: 'e/ef/Chess_ndt45.svg', p: 'c/c7/Chess_pdt45.svg' 
-};
+/* نادي الشطرنج: محرك محلي يدعم النقل القانوني، التبييت، الأخذ بالتجاوز، والترقية والتعادل. */
+const CHESS_PIECES = { K: '♔', Q: '♕', R: '♖', B: '♗', N: '♘', P: '♙', k: '♚', q: '♛', r: '♜', b: '♝', n: '♞', p: '♟' };
 const chessColor = piece => piece && (piece === piece.toUpperCase() ? 'w' : 'b');
 const chessOther = color => color === 'w' ? 'b' : 'w';
 function startChess() { clearInterval(session.timer); const record = state.games.chess.chess || defaultGameData().chess; $('#game-area').innerHTML = `<div class="chess-lobby"><div class="library-heading"><div><p class="prompt-label">مباراة كاملة بقواعد صحيحة</p><h2>نادي الشطرنج</h2><p>اختر خصمك، ثم ابدأ المباراة. تُحفظ نتائجك وسلسلة انتصاراتك تلقائيًا.</p></div><div class="library-badge">♟<small>${record.wins || 0} فوز</small></div></div><div class="chess-modes"><button class="chess-mode selected" data-chess-mode="computer"><b>🤖 ضد الكمبيوتر</b><small>تلعب بالأبيض</small></button><button class="chess-mode" data-chess-mode="local"><b>♟♙ لاعبان محليان</b><small>تناوب على الجهاز نفسه</small></button></div><div id="chess-difficulty" class="difficulty-row"><span>درجة الكمبيوتر:</span><button data-difficulty="easy" class="selected">هادئ</button><button data-difficulty="medium">متوسط</button><button data-difficulty="hard">متقدم</button></div><button id="start-chess-match" class="pixel-button primary">ابدأ المباراة ♟</button><div class="chess-record"><span>فوز <b>${record.wins || 0}</b></span><span>خسارة <b>${record.losses || 0}</b></span><span>تعادل <b>${record.draws || 0}</b></span><span>أفضل سلسلة <b>${record.bestWinStreak || 0}</b></span></div></div>`;
@@ -211,138 +183,28 @@ function chessResult(c) { const moves = legalChessMoves(c); if (!moves.length) r
 function chessEvaluation(c) { const values = { p: 100, n: 320, b: 330, r: 500, q: 900, k: 20000 }; return c.board.flat().reduce((score, piece) => piece ? score + (chessColor(piece) === 'b' ? 1 : -1) * values[piece.toLowerCase()] : score, 0); }
 function chessMinimax(c, depth, alpha = -Infinity, beta = Infinity) { const result = chessResult(c); if (result?.type === 'mate') return result.winner === 'b' ? 100000 : -100000; if (result || depth === 0) return chessEvaluation(c); const moves = legalChessMoves(c); if (c.turn === 'b') { let score = -Infinity; for (const move of moves) { score = Math.max(score, chessMinimax(applyChessMove(copyChessConfig(c), move), depth - 1, alpha, beta)); alpha = Math.max(alpha, score); if (beta <= alpha) break; } return score; } let score = Infinity; for (const move of moves) { score = Math.min(score, chessMinimax(applyChessMove(copyChessConfig(c), move), depth - 1, alpha, beta)); beta = Math.min(beta, score); if (beta <= alpha) break; } return score; }
 function chooseChessMove(c) { const moves = legalChessMoves(c); if (c.difficulty === 'easy') return moves[Math.floor(Math.random() * moves.length)]; const depth = c.difficulty === 'hard' ? 2 : 1; let best = moves[0], value = -Infinity; moves.forEach(move => { const score = chessMinimax(applyChessMove(copyChessConfig(c), move), depth - 1); if (score > value || (score === value && Math.random() > .5)) { best = move; value = score; } }); return best; }
-
-function renderChess() { 
-  const c = session.config; const selected = c.selected; 
-  const turnLabel = c.thinking ? 'الكمبيوتر يفكر…' : `${c.turn === 'w' ? 'الأبيض' : 'الأسود'} عليه اللعب`; 
-  const check = isChessCheck(c, c.turn); 
-  
-  $('#game-area').innerHTML = `<div class="chess-game"><div class="chess-status">${gameMeta(`<span>${turnLabel}${check ? ' · كش!' : ''}</span><span>${c.mode === 'computer' ? `ضد الكمبيوتر · ${c.difficulty === 'easy' ? 'هادئ' : c.difficulty === 'medium' ? 'متوسط' : 'متقدم'}` : 'لاعبان محليان'}</span>`)}<button id="resign-chess" class="tiny-button">إنهاء المباراة</button></div><div class="chess-board" dir="ltr">${c.board.map((row, r) => row.map((piece, col) => { 
-    const isSelected = selected?.r === r && selected?.c === col, available = c.legal?.some(move => move.to.r === r && move.to.c === col); 
-    return `<button class="chess-cell ${(r + col) % 2 ? 'dark-square' : 'light-square'} ${isSelected ? 'selected-piece' : ''} ${available ? 'legal-square' : ''}" data-row="${r}" data-col="${col}" ${c.thinking ? 'disabled' : ''}>${piece ? `<div class="chess-piece" style="background-image:url(https://upload.wikimedia.org/wikipedia/commons/${CHESS_URLS[piece]})"></div>` : ''}</button>`; 
-  }).join('')).join('')}</div><p class="chess-help">${c.mode === 'computer' ? 'أنت تلعب بالأبيض. اختر القطعة ثم المربع المطلوب.' : 'يتناوب اللاعبان على الجهاز نفسه.'}</p></div>`; 
-  
-  $$('.chess-cell').forEach(cell => cell.addEventListener('click', () => handleChessCell(Number(cell.dataset.row), Number(cell.dataset.col)))); 
-  $('#resign-chess').addEventListener('click', () => finishChess(c.mode === 'computer' ? 'black' : 'draw', c.mode === 'computer' ? 'أنهيت المباراة' : 'انتهت المباراة باتفاق اللاعبين')); 
-}
-
-function handleChessCell(r, col) { 
-  const c = session.config; 
-  if (c.thinking || (c.mode === 'computer' && c.turn === 'b') || c.promoting) return; 
-  const piece = c.board[r][col], color = chessColor(piece); 
-  
-  if (!c.selected) { 
-    if (piece && color === c.turn) { 
-      c.selected = { r, c: col }; 
-      c.legal = legalChessMoves(c).filter(move => move.from.r === r && move.from.c === col); 
-      renderChess(); 
-    } 
-    return; 
-  } 
-  
-  const move = c.legal.find(item => item.to.r === r && item.to.c === col); 
-  if (!move) { 
-    c.selected = piece && color === c.turn ? { r, c: col } : null; 
-    c.legal = c.selected ? legalChessMoves(c).filter(item => item.from.r === r && item.from.c === col) : []; 
-    renderChess(); 
-    return; 
-  } 
-  
-  if (move.promotion) {
-    c.promoting = true; 
-    return showChessPromotion(move); 
-  }
-  
-  performChessMove(move, true); 
-}
-
-function showChessPromotion(move) { 
-  const picker = document.createElement('div'); 
-  picker.className = 'promotion-picker'; 
-  const pColor = chessColor(session.config.board[move.from.r][move.from.c]);
-  
-  picker.innerHTML = `<span>ترقية</span>${['q', 'r', 'b', 'n'].map(piece => {
-    const key = pColor === 'w' ? piece.toUpperCase() : piece;
-    return `<button data-promote="${piece}"><div class="chess-piece" style="background-image:url(https://upload.wikimedia.org/wikipedia/commons/${CHESS_URLS[key]})"></div></button>`;
-  }).join('')}`; 
-  
-  $('.chess-game').append(picker); 
-  
-  $$('[data-promote]').forEach(button => button.addEventListener('click', () => { 
-    move.promotion = button.dataset.promote; 
-    picker.remove(); 
-    session.config.promoting = false;
-    performChessMove(move, true); 
-  })); 
-}
-
+function renderChess() { const c = session.config; const selected = c.selected; const turnLabel = c.thinking ? 'الكمبيوتر يفكر…' : `${c.turn === 'w' ? 'الأبيض' : 'الأسود'} عليه اللعب`; const check = isChessCheck(c, c.turn); $('#game-area').innerHTML = `<div class="chess-game"><div class="chess-status">${gameMeta(`<span>${turnLabel}${check ? ' · كش!' : ''}</span><span>${c.mode === 'computer' ? `ضد الكمبيوتر · ${c.difficulty === 'easy' ? 'هادئ' : c.difficulty === 'medium' ? 'متوسط' : 'متقدم'}` : 'لاعبان محليان'}</span>`)}<button id="resign-chess" class="tiny-button">إنهاء المباراة</button></div><div class="chess-board" dir="ltr">${c.board.map((row, r) => row.map((piece, col) => { const isSelected = selected?.r === r && selected?.c === col, available = c.legal?.some(move => move.to.r === r && move.to.c === col); return `<button class="chess-cell ${(r + col) % 2 ? 'dark-square' : 'light-square'} ${isSelected ? 'selected-piece' : ''} ${available ? 'legal-square' : ''}" data-row="${r}" data-col="${col}" ${c.thinking ? 'disabled' : ''}>${piece ? `<span class="${chessColor(piece) === 'w' ? 'white-piece' : 'black-piece'}">${CHESS_PIECES[piece]}</span>` : ''}</button>`; }).join('')).join('')}</div><p class="chess-help">${c.mode === 'computer' ? 'أنت تلعب بالأبيض. اختر القطعة ثم المربع المطلوب.' : 'يتناوب اللاعبان على الجهاز نفسه.'}</p></div>`; $$('.chess-cell').forEach(cell => cell.addEventListener('click', () => handleChessCell(Number(cell.dataset.row), Number(cell.dataset.col)))); $('#resign-chess').addEventListener('click', () => finishChess(c.mode === 'computer' ? 'black' : 'draw', c.mode === 'computer' ? 'أنهيت المباراة' : 'انتهت المباراة باتفاق اللاعبين')); }
+function handleChessCell(r, col) { const c = session.config; if (c.thinking || (c.mode === 'computer' && c.turn === 'b')) return; const piece = c.board[r][col], color = chessColor(piece); if (!c.selected) { if (piece && color === c.turn) { c.selected = { r, c: col }; c.legal = legalChessMoves(c).filter(move => move.from.r === r && move.from.c === col); renderChess(); } return; } const move = c.legal.find(item => item.to.r === r && item.to.c === col); if (!move) { c.selected = piece && color === c.turn ? { r, c: col } : null; c.legal = c.selected ? legalChessMoves(c).filter(item => item.from.r === r && item.from.c === col) : []; renderChess(); return; } if (move.promotion) return showChessPromotion(move); performChessMove(move, true); }
+function showChessPromotion(move) { const picker = document.createElement('div'); picker.className = 'promotion-picker'; picker.innerHTML = `<span>اختر قطعة الترقية</span>${['q', 'r', 'b', 'n'].map(piece => `<button data-promote="${piece}">${CHESS_PIECES[piece.toUpperCase()]}</button>`).join('')}`; $('.chess-game').append(picker); $$('[data-promote]').forEach(button => button.addEventListener('click', () => { move.promotion = button.dataset.promote; picker.remove(); performChessMove(move, true); })); }
 function performChessMove(move, human) { const c = session.config; applyChessMove(c, move); c.selected = null; c.legal = []; if (human) { session.attempts++; session.correct++; } if (resolveChessResult()) return; renderChess(); if (c.mode === 'computer' && c.turn === 'b') { c.thinking = true; renderChess(); setTimeout(() => { if (currentGame !== 'chess' || !session?.config?.thinking) return; const aiMove = chooseChessMove(c); c.thinking = false; applyChessMove(c, aiMove); if (!resolveChessResult()) renderChess(); }, 260); } }
 function resolveChessResult() { const result = chessResult(session.config); if (!result) return false; finishChess(result.type === 'mate' ? result.winner : 'draw', result.type === 'mate' ? 'كش ملك' : result.reason); return true; }
 function finishChess(result, reason) { const c = session.config; const record = state.games.chess.chess || (state.games.chess.chess = defaultGameData().chess); const computer = c.mode === 'computer'; const playerWon = computer && result === 'white'; if (computer) { if (result === 'draw') { record.draws++; record.currentWinStreak = 0; } else if (playerWon) { record.wins++; record.currentWinStreak++; record.bestWinStreak = Math.max(record.bestWinStreak, record.currentWinStreak); } else { record.losses++; record.currentWinStreak = 0; } } const score = result === 'draw' ? 55 : playerWon ? 140 : computer ? 15 : 90; updateSessionScore(score); const outcome = result === 'draw' ? 'تعادل' : result === 'white' ? 'فوز الأبيض' : 'فوز الأسود'; finishGame(playerWon || !computer, { completed: true, title: outcome, message: reason, scoreLine: computer ? `فوز ${record.wins} · خسارة ${record.losses} · تعادل ${record.draws}` : 'تم تسجيل نتيجة مباراة محلية', activity: `${outcome} في <b>نادي الشطرنج</b> · ${reason}` }); }
 
-/* مواضع الحيوانات: ألغاز شبكية أصلية مع ألوان متصلة ومساعدة ذكية في البداية */
-const animalPalette = ['#FF6B8B', '#48CDB0', '#FFD23F', '#7982B9', '#5CD3FF', '#C792DF', '#FF9F43', '#83D68A', '#F1828D'];
+/* مواضع الحيوانات: ألغاز شبكية أصلية تستعمل قيود الصفوف والأعمدة والألوان وعدم التلامس. */
+const animalPalette = ['#6bae8e', '#7d74b3', '#bb875f', '#9bcf87', '#6f90c4', '#c3ca64', '#da8c9a', '#d2995f', '#62b7ba'];
 function animalPermutation(size, seedValue) { const random = seeded(seedValue); const places = []; const search = row => { if (row === size) return true; const columns = seededShuffle(Array.from({ length: size }, (_, i) => i), random); for (const col of columns) if (!places.includes(col) && (!row || Math.abs(places[row - 1] - col) > 1)) { places.push(col); if (search(row + 1)) return true; places.pop(); } return false; }; search(0); return places; }
-
-function makeAnimalLevel(level) {
-  const size = 9;
-  const solution = animalPermutation(size, level * 17 + 13);
-  const random = seeded(level * 59 + 9);
-  
-  const grid = Array.from({ length: size }, () => Array(size).fill(0));
-  const seeds = solution.map((col, row) => ({ r: row, c: col }));
-  
-  for (let r = 0; r < size; r++) {
-    for (let c = 0; c < size; c++) {
-      let minD = Infinity;
-      let color = 0;
-      seeds.forEach((seed, idx) => {
-        const d = Math.abs(r - seed.r) + Math.abs(c - seed.c) + (random() * 0.45);
-        if (d < minD) { minD = d; color = idx; }
-      });
-      grid[r][c] = color;
-    }
-  }
-  
-  let isolateCount = level <= 3 ? 4 : level <= 7 ? 3 : level <= 12 ? 2 : level <= 18 ? 1 : 0;
-  let isolatedColors = seededShuffle([0, 1, 2, 3, 4, 5, 6, 7, 8], random).slice(0, isolateCount);
-  
-  if (isolateCount > 0) {
-    for (let r = 0; r < size; r++) {
-      for (let c = 0; c < size; c++) {
-        let color = grid[r][c];
-        if (isolatedColors.includes(color)) {
-          let seed = seeds[color];
-          if (r !== seed.r || c !== seed.c) {
-            let minD = Infinity;
-            let newColor = 0;
-            seeds.forEach((s, idx) => {
-              if (!isolatedColors.includes(idx)) {
-                let d = Math.abs(r - s.r) + Math.abs(c - s.c) + (random() * 0.45);
-                if (d < minD) { minD = d; newColor = idx; }
-              }
-            });
-            grid[r][c] = newColor;
-          }
-        }
-      }
-    }
-  }
-  
-  solution.forEach((col, row) => { grid[row][col] = row; });
-  const givensCount = 0; 
-  const givenRows = []; 
-  
-  return { level, size, solution, grid, givenRows, name: level <= 8 ? 'تمهيدي' : level <= 18 ? 'متدرج' : 'خبير' };
-}
-
-function startAnimals() { clearInterval(session.timer); const unlocked = Math.min(30, Math.max(1, highestCompleted('animals') + 1)); $('#game-area').innerHTML = `<div class="level-library animal-library"><div class="library-heading"><div><p class="prompt-label">حيوان واحد لكل لون وصف وعمود</p><h2>اختر مرحلة الحيوانات</h2><p>ضع الحيوانات، دوّن علامات الاستبعاد، ثم تحقق من الحل. لا تتلامس الحيوانات حتى قطريًا.</p></div><div class="library-badge">🐰<small>${completedLevels(state, 'animals')} / 30</small></div></div><label class="timed-toggle"><input id="animal-timed" type="checkbox" /> تحدي وقت اختياري (يمنح نقاطًا إضافية)</label><div class="level-grid">${Array.from({ length: 30 }, (_, i) => levelProgressCard('animals', i + 1, `مرحلة ${i + 1}`, i + 1 > unlocked)).join('')}</div></div>`; $$('.level-card:not(.locked)').forEach(button => button.addEventListener('click', () => launchAnimals(Number(button.dataset.level), $('#animal-timed').checked))); }
-function launchAnimals(level, timed) { const data = makeAnimalLevel(level); session.startedAt = Date.now(); session.score = 0; session.attempts = 0; session.correct = 0; session.streak = 0; session.config = { ...data, cells: Array(data.size * data.size).fill(''), given: new Set(), hints: 3, hearts: 3, invalid: new Set(), clickTimers: {}, level, timed, timeLimit: timed ? Math.max(70, 150 - level * 2) : 0 }; data.givenRows.forEach(row => { const index = row * data.size + data.solution[row]; session.config.cells[index] = 'animal'; session.config.given.add(index); }); beginTimer(); if (timed) session.limitTimer = setInterval(() => { const seconds = Math.floor((Date.now() - session.startedAt) / 1000); if (seconds >= session.config.timeLimit) failAnimals('انتهى وقت التحدي'); }, 800); renderAnimals(); }
-function renderAnimals() { const c = session.config; const placed = c.cells.filter(value => value === 'animal').length; const timeInfo = c.timed ? `<span>الوقت المتبقي: <b>${Math.max(0, c.timeLimit - Math.floor((Date.now() - session.startedAt) / 1000))} ث</b></span>` : '<span>وضع هادئ</span>'; $('#game-area').innerHTML = `<div class="animals-wrap"><div class="animal-rules"><div><span>🐰 حيوان واحد لكل لون</span><span>↔ صف وعمود واحد</span><span>╳ لا تلامس</span></div>${gameMeta(`<span>المرحلة ${c.level} · ${c.name}</span><span>الحيوانات: <b>${placed}/9</b></span>${timeInfo}`)}</div><div class="animal-board nine-by-nine" style="--animal-size:${c.size}">${c.cells.map((value, index) => { const row = Math.floor(index / c.size), col = index % c.size, color = animalPalette[c.grid[row][col]]; const content = value === 'animal' ? '🐰' : value === 'mark' ? '×' : value === 'bad' ? '<span class="bad-x">×</span>' : ''; return `<button class="animal-cell ${value === 'mark' ? 'marked' : ''} ${value === 'bad' ? 'bad-choice' : ''}" style="--cell-color:${color}" data-animal-cell="${index}" ${c.given.has(index) ? 'disabled' : ''}>${content}</button>`; }).join('')}</div><div class="animal-controls"><div class="animal-gesture-guide"><span>نقرة واحدة <b>×</b></span><i>·</i><span>نقرتان <b>🐰</b></span><i>·</i><span>لا تضغط عشوائيًا!</span></div><div class="animal-bottom-strip"><span class="heart-count">${'❤️'.repeat(c.hearts)}${'🖤'.repeat(3 - c.hearts)}</span><div id="hint-animals" class="hint-orb ${c.hints ? '' : 'spent'}" role="button" tabindex="0">💡 <b>${c.hints}</b><small>تلميح</small></div><span class="animal-count">🐰 <b>${placed}/9</b><small>الحيوانات</small></span></div><p class="sudoku-note">استخدم العلامات لتتبع الاحتمالات؛ يكتمل اللغز تلقائيًا عند وضع الحيوانات في المواضع الصحيحة.</p></div></div>`; $$('.animal-cell:not([disabled])').forEach(cell => { const index = Number(cell.dataset.animalCell); cell.addEventListener('click', () => queueAnimalMark(index)); cell.addEventListener('dblclick', event => { event.preventDefault(); chooseAnimalCell(index); }); }); $('#hint-animals').addEventListener('click', hintAnimals); $('#hint-animals').addEventListener('keydown', event => { if (event.key === 'Enter' || event.key === ' ') hintAnimals(); }); }
-function queueAnimalMark(index) { const c = session.config; clearTimeout(c.clickTimers[index]); c.clickTimers[index] = setTimeout(() => { if (c.cells[index] === 'bad') return; c.cells[index] = c.cells[index] === 'mark' ? '' : 'mark'; c.invalid.delete(index); session.attempts++; renderAnimals(); }, 220); }
-function chooseAnimalCell(index) { const c = session.config; clearTimeout(c.clickTimers[index]); const row = Math.floor(index / c.size), col = index % c.size; session.attempts++; if (c.solution[row] !== col) { c.cells[index] = 'bad'; c.invalid.add(index); c.hearts--; renderAnimals(); animateBrokenHeart(index); if (c.hearts <= 0) setTimeout(() => failAnimals('استُهلكت القلوب في هذه المحاولة'), 520); return; } c.cells[index] = 'animal'; c.invalid.delete(index); session.correct++; renderAnimals(); if (c.cells.filter(value => value === 'animal').length === c.size) setTimeout(finishAnimals, 380); }
+function catStageSpec(level) { if (level <= 10) return { size: 5, cats: Math.min(5, 3 + Math.floor((level - 1) / 3)), clues: level <= 3 ? 2 : level <= 7 ? 1 : 0, name: 'أساسيات الاستنتاج' }; if (level <= 24) return { size: 7, cats: Math.min(7, 4 + Math.floor((level - 11) / 4)), clues: level <= 14 ? 1 : 0, name: 'مناطق مترابطة' }; return { size: 9, cats: Math.min(9, 6 + Math.floor((level - 25) / 8)), clues: 0, name: 'استنتاج متقدم' }; }
+function makeCatSolution(size, cats, seedValue) { const random = seeded(seedValue); for (let attempt = 0; attempt < 240; attempt++) { const selected = []; const cells = seededShuffle(Array.from({ length: size * size }, (_, i) => i), random); for (const index of cells) { const row = Math.floor(index / size), col = index % size; if (selected.some(cell => Math.floor(cell / size) === row || cell % size === col || (Math.abs(Math.floor(cell / size) - row) <= 1 && Math.abs(cell % size - col) <= 1))) continue; selected.push(index); if (selected.length === cats) return selected; } } const columns = animalPermutation(size, seedValue).slice(0, cats); return columns.map((col, row) => row * size + col); }
+function growCatRegions(size, solution, seedValue) { const random = seeded(seedValue); const owners = Array(size * size).fill(-1); const groups = solution.map((index, region) => { owners[index] = region; return [index]; }); const directions = [[-1,0],[1,0],[0,-1],[0,1]]; let left = owners.filter(owner => owner < 0).length; while (left) { const candidates = []; groups.forEach((cells, region) => cells.forEach(index => { const row = Math.floor(index / size), col = index % size; directions.forEach(([dr, dc]) => { const nextRow = row + dr, nextCol = col + dc, next = nextRow * size + nextCol; if (nextRow >= 0 && nextRow < size && nextCol >= 0 && nextCol < size && owners[next] < 0) candidates.push({ region, index: next }); }); })); const smallest = Math.min(...groups.map(group => group.length)); const balanced = candidates.filter(item => groups[item.region].length <= smallest + 1); const pick = (balanced.length ? balanced : candidates)[Math.floor(random() * (balanced.length ? balanced.length : candidates.length))]; owners[pick.index] = pick.region; groups[pick.region].push(pick.index); left--; } return { owners, groups }; }
+function countCatSolutions(size, groups, givens, limit = 2) { const selected = [...givens]; const fixedGroups = new Set(selected.map(index => groups.findIndex(group => group.includes(index)))); let count = 0; const allowed = index => { const row = Math.floor(index / size), col = index % size; return !selected.some(cell => { const otherRow = Math.floor(cell / size), otherCol = cell % size; return otherRow === row || otherCol === col || (Math.abs(otherRow - row) <= 1 && Math.abs(otherCol - col) <= 1); }); }; const search = () => { if (count >= limit) return; if (selected.length === groups.length) { count++; return; } let region = -1, options = null; groups.forEach((group, index) => { if (fixedGroups.has(index)) return; const cells = group.filter(allowed); if (options === null || cells.length < options.length) { region = index; options = cells; } }); if (!options?.length) return; fixedGroups.add(region); for (const cell of options) { selected.push(cell); search(); selected.pop(); if (count >= limit) break; } fixedGroups.delete(region); }; search(); return count; }
+function makeAnimalLevel(level) { const spec = catStageSpec(level); let fallback; for (let attempt = 0; attempt < 120; attempt++) { const seedValue = level * 1009 + attempt * 79; const solution = makeCatSolution(spec.size, spec.cats, seedValue); const regions = growCatRegions(spec.size, solution, seedValue + 23); const random = seeded(seedValue + 47); const given = seededShuffle(solution, random).slice(0, spec.clues); const candidate = { level, ...spec, solution, given, grid: Array.from({ length: spec.size }, (_, row) => Array.from({ length: spec.size }, (_, col) => regions.owners[row * spec.size + col])), groups: regions.groups }; fallback = candidate; if (countCatSolutions(spec.size, regions.groups, given) === 1) return candidate; } return { ...fallback, given: fallback.solution }; }
+function startAnimals() { clearInterval(session.timer); const unlocked = Math.min(50, Math.max(1, highestCompleted('animals') + 1)); $('#game-area').innerHTML = `<div class="level-library animal-library"><div class="library-heading"><div><p class="prompt-label">قط واحد في كل منطقة لونية</p><h2>اختر مرحلة لعبة القط</h2><p>ابدأ بالشبكات الصغيرة ثم انتقل إلى مناطق أكبر تحتاج إلى سلسلة استنتاجات مترابطة.</p></div><div class="library-badge">🐱<small>${completedLevels(state, 'animals')} / 50</small></div></div><label class="timed-toggle"><input id="animal-timed" type="checkbox" /> تحدي وقت اختياري (يمنح نقاطًا إضافية)</label><div class="level-grid cat-level-grid">${Array.from({ length: 50 }, (_, i) => levelProgressCard('animals', i + 1, `مرحلة ${i + 1}`, i + 1 > unlocked)).join('')}</div></div>`; $$('.level-card:not(.locked)').forEach(button => button.addEventListener('click', () => launchAnimals(Number(button.dataset.level), $('#animal-timed').checked))); }
+function launchAnimals(level, timed) { const data = makeAnimalLevel(level); session.startedAt = Date.now(); session.score = 0; session.attempts = 0; session.correct = 0; session.streak = 0; session.config = { ...data, cells: Array(data.size * data.size).fill(''), given: new Set(), hints: level <= 10 ? 3 : level <= 24 ? 2 : 1, hearts: 3, invalid: new Set(), level, timed, timeLimit: timed ? Math.max(70, 165 - level * 2) : 0 }; data.given.forEach(index => { session.config.cells[index] = 'animal'; session.config.given.add(index); }); beginTimer(); if (timed) session.limitTimer = setInterval(() => { const seconds = Math.floor((Date.now() - session.startedAt) / 1000); if (seconds >= session.config.timeLimit) failAnimals('انتهى وقت التحدي'); }, 800); renderAnimals(); }
+function renderAnimals() { const c = session.config; const placed = c.cells.filter(value => value === 'animal').length; const timeInfo = c.timed ? `<span>الوقت المتبقي: <b>${Math.max(0, c.timeLimit - Math.floor((Date.now() - session.startedAt) / 1000))} ث</b></span>` : '<span>وضع هادئ</span>'; const tutorial = c.level <= 3 ? `<div class="cat-tutorial"><b>تعلّم القاعدة</b><span>كل منطقة متصلة بلون واحد تخفي قطًا واحدًا.</span><span>لا يتشارك قطان صفًا أو عمودًا، ولا يتلامسان.</span></div>` : ''; $('#game-area').innerHTML = `<div class="animals-wrap"><div class="animal-rules"><div><span>🐱 قط واحد لكل منطقة</span><span>↔ صف وعمود واحد</span><span>╳ لا تلامس</span></div>${gameMeta(`<span>المرحلة ${c.level} · ${c.name}</span><span>القطط: <b>${placed}/${c.cats}</b></span>${timeInfo}`)}</div>${tutorial}<div class="animal-board cat-grid cat-grid-${c.size}" style="--animal-size:${c.size}">${c.cells.map((value, index) => { const row = Math.floor(index / c.size), col = index % c.size, color = animalPalette[c.grid[row][col] % animalPalette.length]; const content = value === 'animal' ? '🐱' : value === 'mark' ? '×' : value === 'bad' ? '<span class="bad-x">×</span>' : ''; return `<button class="animal-cell ${value === 'mark' ? 'marked' : ''} ${value === 'bad' ? 'bad-choice' : ''}" style="--cell-color:${color}" data-animal-cell="${index}" ${c.given.has(index) ? 'disabled' : ''}>${content}</button>`; }).join('')}</div><div class="animal-controls"><div class="animal-gesture-guide"><span>نقرة واحدة <b>×</b></span><i>·</i><span>نقرتان <b>🐱</b></span><i>·</i><span>حلّل المناطق أولًا</span></div><div class="animal-bottom-strip"><span class="heart-count">${'❤️'.repeat(c.hearts)}${'🖤'.repeat(3 - c.hearts)}</span><div id="hint-animals" class="hint-orb ${c.hints ? '' : 'spent'}" role="button" tabindex="0">💡 <b>${c.hints}</b><small>تلميح</small></div><button id="restart-cats" class="restart-cats">↻ <small>إعادة المرحلة</small></button><span class="animal-count">🐱 <b>${placed}/${c.cats}</b><small>القطط</small></span></div><p class="sudoku-note">تظهر علامة الاستبعاد فورًا. يكتمل اللغز تلقائيًا عند وضع كل القطط الصحيحة.</p></div></div>`; $$('.animal-cell:not([disabled])').forEach(cell => { const index = Number(cell.dataset.animalCell); cell.addEventListener('click', () => queueAnimalMark(index)); cell.addEventListener('dblclick', event => { event.preventDefault(); chooseAnimalCell(index); }); }); $('#hint-animals').addEventListener('click', hintAnimals); $('#hint-animals').addEventListener('keydown', event => { if (event.key === 'Enter' || event.key === ' ') hintAnimals(); }); $('#restart-cats').addEventListener('click', () => launchAnimals(c.level, c.timed)); }
+function queueAnimalMark(index) { const c = session.config; if (c.cells[index] === 'bad') return; c.cells[index] = c.cells[index] === 'mark' ? '' : 'mark'; c.invalid.delete(index); session.attempts++; const cell = document.querySelector(`[data-animal-cell="${index}"]`); if (cell) { cell.classList.toggle('marked', c.cells[index] === 'mark'); cell.textContent = c.cells[index] === 'mark' ? '×' : ''; } }
+function chooseAnimalCell(index) { const c = session.config; session.attempts++; if (!c.solution.includes(index)) { c.cells[index] = 'bad'; c.invalid.add(index); c.hearts--; renderAnimals(); animateBrokenHeart(index); if (c.hearts <= 0) setTimeout(() => failAnimals('استُهلكت القلوب في هذه المحاولة'), 520); return; } c.cells[index] = 'animal'; c.invalid.delete(index); session.correct++; renderAnimals(); if (c.cells.filter(value => value === 'animal').length === c.cats) setTimeout(finishAnimals, 380); }
 function animateBrokenHeart(index) { const cell = document.querySelector(`[data-animal-cell="${index}"]`); if (!cell) return; const heart = document.createElement('span'); heart.className = 'broken-heart-pop'; heart.textContent = '💔'; cell.append(heart); }
-function hintAnimals() { const c = session.config; if (!c.hints) return; const row = c.solution.findIndex((col, r) => c.cells[r * c.size + col] !== 'animal'); if (row < 0) return; const index = row * c.size + c.solution[row]; c.cells[index] = 'animal'; c.hints--; session.correct++; showToast('وُضع حيوان في موضع صحيح ✦'); renderAnimals(); if (c.cells.filter(value => value === 'animal').length === c.size) setTimeout(finishAnimals, 380); }
+function hintAnimals() { const c = session.config; if (!c.hints) return; const index = c.solution.find(cell => c.cells[cell] !== 'animal'); if (index === undefined) return; c.cells[index] = 'animal'; c.hints--; session.correct++; showToast('وُضع قط في موضع صحيح ✦'); renderAnimals(); if (c.cells.filter(value => value === 'animal').length === c.cats) setTimeout(finishAnimals, 380); }
 function finishAnimals() { const c = session.config; clearInterval(c.limitTimer); const stars = c.hearts === 3 && c.hints === 3 ? 3 : c.hearts >= 2 ? 2 : 1; updateSessionScore(70 + c.level * 4 + stars * 12 + (c.timed ? 25 : 0)); finishGame(true, { level: c.level, stars, title: 'حل منطقي رائع!', message: `أكملت المرحلة ${c.level} بتقييم ${'★'.repeat(stars)}.`, scoreLine: `${fmtTime(Math.max(1, Math.round((Date.now() - session.startedAt) / 1000)))} · ${c.hearts} قلوب متبقية` }); }
 function failAnimals(reason) { clearInterval(session.config.limitTimer); updateSessionScore(8); finishGame(false, { level: session.config.level, title: 'جولة جديدة قريبًا', message: reason, scoreLine: 'يمكنك إعادة المرحلة وتحسين استنتاجك.' }); }
 
@@ -360,25 +222,14 @@ function renderLogicPuzzle() { const { puzzle, answered, choice } = session.conf
 function answerLogic(choice) { session.config.answered = true; session.config.choice = choice; session.attempts++; if (choice === session.config.puzzle.correct) { session.correct++; session.streak = 1; } renderLogicPuzzle(); }
 function finishLogic() { const c = session.config, right = c.choice === c.puzzle.correct; updateSessionScore(right ? 58 : 8); finishGame(right, { level: c.level, stars: right ? 3 : 0, completed: right, title: right ? 'فكرة ذكية!' : 'فهمت القاعدة الآن', message: right ? 'أضفت لغزًا جديدًا إلى مكتبتك المحلولة.' : c.puzzle.explanation, scoreLine: right ? `لغز ${c.puzzle.category} · ${fmtTime(Math.max(1, Math.round((Date.now() - session.startedAt) / 1000)))}` : 'يمكنك إعادة اللغز وتحسين نتيجتك.' }); }
 
-function openNameModal() { $('#modal-title').textContent = 'تعديل الاسم'; $('#modal-content').innerHTML = `<p>كيف تحب أن يناديك بيت الألغاز؟</p><input id="name-input" maxlength="18" value="${escapeHtml(state.profile.name)}" /><div class="modal-actions"><button class="tiny-button close-modal">إلغاء</button><button id="confirm-name" class="pixel-button primary">حفظ</button></div>`; $('#modal').classList.remove('hidden'); $('#name-input').focus(); $('#confirm-name').addEventListener('click', saveNameFromModal); }
+function openNameModal() { $('#modal-title').textContent = 'تعديل الاسم'; $('#modal-content').innerHTML = `<p>كيف تحب أن يناديك بيت الألغاز؟</p><input id="name-input" maxlength="18" value="${escapeHtml(state.profile.name)}" /><div class="modal-actions"><button class="tiny-button close-modal">إلغاء</button><button id="confirm-name" class="pixel-button primary">حفظ</button></div>`; $('#modal').classList.remove('hidden'); $('#name-input').focus(); $('#confirm-name').addEventListener('click', saveNameFromModal); $$('.close-modal').forEach(button => button.addEventListener('click', closeModal)); }
 function saveNameFromModal() { const value = $('#name-input').value.trim(); if (value) { state.profile.name = value; saveState(); renderHome(); showToast('تم حفظ الاسم ✦'); } closeModal(); }
 function closeModal() { $('#modal').classList.add('hidden'); }
 function setTheme(theme) { state.profile.theme = theme; document.body.dataset.theme = theme; saveState(); renderSettings(); showToast('تم تغيير ألوان السماء ✦'); }
 function exportData() { const blob = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' }); const link = document.createElement('a'); link.href = URL.createObjectURL(blob); link.download = `puzzle-parlor-backup-${todayKey()}.json`; link.click(); URL.revokeObjectURL(link.href); showToast('تم تنزيل نسخة احتياطية'); }
-function confirmReset() { $('#modal-title').textContent = 'إعادة ضبط التقدم'; $('#modal-content').innerHTML = `<p>سيتم حذف كل النقاط والإحصاءات المحفوظة على هذا المتصفح. لا يمكن التراجع عن ذلك.</p><div class="modal-actions"><button class="tiny-button close-modal">إلغاء</button><button id="confirm-reset" class="danger-button">حذف البيانات</button></div>`; $('#modal').classList.remove('hidden'); $('#confirm-reset').addEventListener('click', () => { state = makeDefaultState(); saveState(); document.body.dataset.theme = 'sky'; closeModal(); renderAll(); switchPage('home'); showToast('بدأنا صفحة جديدة ♡'); }); }
+function confirmReset() { $('#modal-title').textContent = 'إعادة ضبط التقدم'; $('#modal-content').innerHTML = `<p>سيتم حذف كل النقاط والإحصاءات المحفوظة على هذا المتصفح. لا يمكن التراجع عن ذلك.</p><div class="modal-actions"><button class="tiny-button close-modal">إلغاء</button><button id="confirm-reset" class="danger-button">حذف البيانات</button></div>`; $('#modal').classList.remove('hidden'); $$('.close-modal').forEach(button => button.addEventListener('click', closeModal)); $('#confirm-reset').addEventListener('click', () => { state = makeDefaultState(); saveState(); document.body.dataset.theme = 'sky'; closeModal(); renderAll(); switchPage('home'); showToast('بدأنا صفحة جديدة ♡'); }); }
 
 document.addEventListener('click', event => { const tab = event.target.closest('[data-page]'); const pageLink = event.target.closest('[data-page-link]'); const gameButton = event.target.closest('[data-game]'); const quickGame = event.target.closest('[data-go-game]'); if (tab) switchPage(tab.dataset.page); if (pageLink) switchPage(pageLink.dataset.pageLink); if (gameButton) openGame(gameButton.dataset.game); if (quickGame) openGame(quickGame.dataset.goGame); });
-
-$('.edit-name').addEventListener('click', openNameModal); 
-$('#modal').addEventListener('click', event => { 
-  if (event.target.id === 'modal' || event.target.closest('.close-modal')) {
-    closeModal(); 
-  }
-}); 
-$('#save-name').addEventListener('click', () => { const name = $('#settings-name').value.trim(); if (name) { state.profile.name = name; saveState(); renderHome(); showToast('تم حفظ الاسم ✦'); } }); 
-$$('.theme-choice').forEach(button => button.addEventListener('click', () => setTheme(button.dataset.theme))); 
-$('#export-data').addEventListener('click', exportData); 
-$('#reset-data').addEventListener('click', confirmReset);
-
+$('.edit-name').addEventListener('click', openNameModal); $('.close-modal').addEventListener('click', closeModal); $('#modal').addEventListener('click', event => { if (event.target.id === 'modal') closeModal(); }); $('#save-name').addEventListener('click', () => { const name = $('#settings-name').value.trim(); if (name) { state.profile.name = name; saveState(); renderHome(); showToast('تم حفظ الاسم ✦'); } }); $$('.theme-choice').forEach(button => button.addEventListener('click', () => setTheme(button.dataset.theme))); $('#export-data').addEventListener('click', exportData); $('#reset-data').addEventListener('click', confirmReset);
 function renderAll() { document.body.dataset.theme = state.profile.theme; renderHome(); renderDirectory(); renderSettings(); }
 renderAll();
