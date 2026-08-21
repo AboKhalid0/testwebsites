@@ -388,8 +388,11 @@ body[data-theme='cinnamoroll'] .theme-decor-layer .cinnamoroll-f { width: clamp(
   body[data-theme='cinnamoroll'] .theme-decor-layer .cinnamoroll-e { width: clamp(50px, 6.5vw, 74px); top: 55vh; left: 2%; }
   body[data-theme='cinnamoroll'] .theme-decor-layer .cinnamoroll-f { width: clamp(44px, 5.5vw, 62px); top: 72vh; left: 34%; }
 }
-@media (max-width: 760px) {
 
+@media (max-width: 760px) {
+  /* التعديل الجذري هنا لإيقاف الحركة المستمرة مع التمرير */
+  .theme-decor-layer { position: static !important; }
+  
   body[data-theme='cinnamoroll'] .theme-decor-layer .cinnamoroll-decor:not([hidden]) {
     position: fixed !important;
     animation: none !important;
