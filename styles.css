@@ -286,3 +286,67 @@ body[data-theme='cinnamoroll'] .hero-row { background: linear-gradient(105deg, #
 
 /* توزيع صور سينيمون رول في هوامش مستقلة، من دون قص أو تغطية الواجهة */
 body[data-theme='cinnamoroll'] .cinnamoroll-decor { z-index: 0; }.cinnamoroll-a, .cinnamoroll-b, .cinnamoroll-c { display: none; } @media (min-width: 1360px) { body[data-theme='cinnamoroll'] .site-shell { position: relative; z-index: 1; width: min(1280px, calc(100% - 240px)); } body[data-theme='cinnamoroll'] .cinnamoroll-decor:not([hidden]) { display: block; } body[data-theme='cinnamoroll'] .cinnamoroll-a { width: clamp(94px, 9vw, 132px); top: 9%; right: 14px; } body[data-theme='cinnamoroll'] .cinnamoroll-b { width: clamp(95px, 9vw, 132px); top: auto; bottom: 11%; left: 14px; } body[data-theme='cinnamoroll'] .cinnamoroll-c { width: clamp(92px, 8.5vw, 124px); top: 49%; right: 18px; bottom: auto; } } @media (max-width: 1359px) { body[data-theme='cinnamoroll'] .cinnamoroll-decor { display: none !important; } }
+
+/* إيماءات لعبة القط: اللمس المباشر للجوال، والنقر المزدوج للكمبيوتر */
+.animal-gesture-guide .touch-gesture { display: none; }
+@media (pointer: coarse) {
+  .animal-gesture-guide .mouse-gesture { display: none; }
+  .animal-gesture-guide .touch-gesture { display: inline-block; }
+}
+
+/* زينة سينيمون رول على الأجهزة اللوحية والجوال: واضحة فوق الواجهة، صغيرة وآمنة للمس. */
+body[data-theme='cinnamoroll'] .cinnamoroll-decor:not([hidden]) {
+  position: fixed;
+  z-index: 4;
+  display: block !important;
+  max-width: none;
+  pointer-events: none;
+  object-fit: contain;
+  filter: drop-shadow(0 5px 7px #6085ad55);
+}
+@media (min-width: 761px) and (max-width: 1359px) {
+  body[data-theme='cinnamoroll'] .cinnamoroll-a {
+    width: clamp(64px, 10vw, 112px);
+    top: 46px;
+    right: auto;
+    left: clamp(20px, 6vw, 76px);
+  }
+  body[data-theme='cinnamoroll'] .cinnamoroll-b {
+    width: clamp(68px, 9vw, 110px);
+    top: clamp(185px, 25vh, 270px);
+    right: auto;
+    bottom: auto;
+    left: clamp(16px, 3.5vw, 46px);
+  }
+  body[data-theme='cinnamoroll'] .cinnamoroll-c {
+    width: clamp(55px, 7vw, 82px);
+    top: clamp(202px, 28vh, 300px);
+    right: clamp(14px, 3vw, 38px);
+    bottom: auto;
+  }
+}
+@media (max-width: 760px) {
+  body[data-theme='cinnamoroll'] .cinnamoroll-a {
+    width: clamp(46px, 13vw, 66px);
+    top: 42px;
+    right: auto;
+    left: clamp(48px, 15vw, 92px);
+  }
+  body[data-theme='cinnamoroll'] .cinnamoroll-b {
+    width: clamp(54px, 16vw, 78px);
+    top: clamp(168px, 27vh, 238px);
+    right: auto;
+    bottom: auto;
+    left: 10px;
+  }
+  body[data-theme='cinnamoroll'] .cinnamoroll-c {
+    width: clamp(42px, 12vw, 60px);
+    top: clamp(255px, 44vh, 390px);
+    right: 8px;
+    bottom: auto;
+  }
+}
+@media (max-width: 390px) {
+  body[data-theme='cinnamoroll'] .cinnamoroll-b { top: 175px; width: 52px; }
+  body[data-theme='cinnamoroll'] .cinnamoroll-c { top: 285px; width: 40px; }
+}
