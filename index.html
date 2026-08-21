@@ -15,6 +15,9 @@
     <div class="sky-decor decor-star star-b">✧</div>
     <div class="sky-decor decor-heart heart-a">♥</div>
     <div class="sky-decor decor-flower flower-a">✿</div>
+    <img class="sky-decor cinnamoroll-decor cinnamoroll-a" src="Cinnamoroll.png" alt="" aria-hidden="true" onerror="this.hidden=true" />
+    <img class="sky-decor cinnamoroll-decor cinnamoroll-b" src="Cinnamoroll1.png" alt="" aria-hidden="true" onerror="this.hidden=true" />
+    <img class="sky-decor cinnamoroll-decor cinnamoroll-c" src="Cinnamoroll2.png" alt="" aria-hidden="true" onerror="this.hidden=true" />
 
     <div class="site-shell">
       <header class="topbar window-frame">
@@ -47,7 +50,7 @@
               <article class="window-frame profile-card">
                 <div class="titlebar"><span>ملف اللاعب</span><span>♡</span></div>
                 <div class="profile-body">
-                  <div class="avatar" aria-hidden="true">✿</div>
+                  <div id="player-avatar" class="avatar" aria-hidden="true">✿</div>
                   <div>
                     <p class="eyebrow">أهلاً بك مجددًا</p>
                     <h2 id="player-name">لاعب الألغاز</h2>
@@ -59,20 +62,19 @@
                 <button class="tiny-button edit-name" type="button">✎ تعديل الاسم</button>
               </article>
 
-              <article class="window-frame quick-links">
-                <div class="titlebar"><span>اختصارات سريعة</span><span>⌁</span></div>
-                <div class="quick-link-grid">
-                  <button data-go-game="memory"><span>🃏</span> ذاكرة</button>
-                  <button data-go-game="math"><span>➕</span> أرقام</button>
-                  <button data-go-game="word"><span>🔤</span> كلمات</button>
-                  <button data-go-game="pattern"><span>◈</span> أنماط</button>
+              <article class="window-frame now-card" aria-label="الوقت والتاريخ الحاليان">
+                <div class="titlebar"><span>الآن</span><span>◷</span></div>
+                <div class="now-card-body">
+                  <time id="live-clock" class="live-clock">00:00:00</time>
+                  <div class="date-pair"><span class="date-label">الميلادي</span><time id="gregorian-date">—</time></div>
+                  <div class="date-pair hijri-date"><span class="date-label">الهجري</span><time id="hijri-date">—</time></div>
                 </div>
               </article>
 
               <article class="sticker-note quote-card">
                 <span class="tape"></span>
-                <p>"القليل كل يوم يصنع عقلًا لامعًا."</p>
-                <small>— رسالة اليوم 💌</small>
+                <p id="daily-quote">"القليل كل يوم يصنع عقلًا لامعًا."</p>
+                <small id="daily-quote-source">— رسالة اليوم 💌</small>
               </article>
             </aside>
 
@@ -98,29 +100,17 @@
               </section>
 
               <article class="window-frame game-shelf">
-                <div class="titlebar"><span>ألعاب مقترحة لك</span><button class="title-link" data-page-link="games">عرض الكل ←</button></div>
-                <div id="recommended-games" class="game-cards"></div>
+                <div class="titlebar"><span>اختياراتك السريعة</span><button class="title-link" data-page-link="settings">تخصيص ←</button></div>
+                <div id="quick-choice-games" class="game-cards"></div>
               </article>
 
-              <div class="home-bottom-grid">
-                <article class="window-frame daily-card">
-                  <div class="titlebar"><span>مهمات اليوم ☼</span><span id="daily-count">0 / 3</span></div>
-                  <div id="daily-tasks" class="task-list"></div>
-                  <div class="reward-strip">هدية الإكمال: <b>+50</b> نجمة ✦</div>
-                </article>
-                <article class="window-frame activity-card">
-                  <div class="titlebar"><span>آخر النشاطات</span><span>◷</span></div>
-                  <ul id="activity-list" class="activity-list"></ul>
-                </article>
-              </div>
             </div>
 
             <aside class="right-stack">
-              <article class="window-frame focus-card">
-                <div class="titlebar"><span>مؤشر التدريب</span><span>⌁</span></div>
-                <p>أفضل مهارة لديك</p>
-                <div class="focus-skill"><span id="top-skill-icon">✦</span><b id="top-skill">بانتظار أول لعبة</b></div>
-                <small id="focus-tip">ابدأ أي لعبة لمعرفة قوتك الذهنية.</small>
+              <article class="window-frame daily-card">
+                <div class="titlebar"><span>مهمات اليوم ☼</span><span id="daily-count">0 / 3</span></div>
+                <div id="daily-tasks" class="task-list"></div>
+                <div class="reward-strip">هدية الإكمال: <b>+50</b> نجمة ✦</div>
               </article>
               <article class="window-frame achievement-preview">
                 <div class="titlebar"><span>أحدث إنجاز</span><span>★</span></div>
@@ -131,6 +121,10 @@
                 <p id="calendar-month"></p>
                 <div id="calendar-grid" class="calendar-grid"></div>
                 <small><i class="legend-dot"></i> لعبت في هذا اليوم</small>
+              </article>
+              <article class="window-frame activity-card">
+                <div class="titlebar"><span>آخر النشاطات</span><span>◷</span></div>
+                <ul id="activity-list" class="activity-list"></ul>
               </article>
             </aside>
           </div>
@@ -163,6 +157,12 @@
           <div class="stats-layout">
             <article class="window-frame chart-card"><div class="titlebar"><span>خريطة مهاراتك</span><span>◈</span></div><div id="skills-chart" class="skills-chart"></div></article>
             <article class="window-frame overview-card"><div class="titlebar"><span>الملخص العام</span><span>✦</span></div><div id="stats-overview" class="overview-list"></div></article>
+            <article class="window-frame focus-card stats-focus-card">
+              <div class="titlebar"><span>مؤشر التدريب</span><span>⌁</span></div>
+              <p>أفضل مهارة لديك</p>
+              <div class="focus-skill"><span id="top-skill-icon">✦</span><b id="top-skill">بانتظار أول لعبة</b></div>
+              <small id="focus-tip">ابدأ أي لعبة لمعرفة قوتك الذهنية.</small>
+            </article>
             <article class="window-frame records-card"><div class="titlebar"><span>أفضل الأرقام</span><span>♛</span></div><div id="records-list" class="records-list"></div></article>
             <article class="window-frame insight-card"><div class="titlebar"><span>ملاحظة لطيفة</span><span>💌</span></div><div id="improvement-tip"></div></article>
           </div>
@@ -177,7 +177,9 @@
           <div class="page-heading window-frame"><div class="titlebar"><span>إعدادات البيت</span><span>⚙</span></div><div><p class="eyebrow">اجعل البيت على ذوقك</p><h1 id="settings-title">الإعدادات</h1><p>كل البيانات محفوظة داخل متصفحك فقط.</p></div></div>
           <div class="settings-grid">
             <article class="window-frame settings-card"><div class="titlebar"><span>هوية اللاعب</span><span>✎</span></div><label>الاسم الظاهر<input id="settings-name" maxlength="18" /></label><button id="save-name" class="pixel-button">حفظ الاسم</button></article>
-            <article class="window-frame settings-card"><div class="titlebar"><span>شكل السماء</span><span>☁</span></div><div class="theme-options"><button data-theme="sky" class="theme-choice selected">سماوي</button><button data-theme="pink" class="theme-choice">وردي</button><button data-theme="lavender" class="theme-choice">لافندر</button></div></article>
+            <article class="window-frame settings-card"><div class="titlebar"><span>شكل السماء</span><span>☁</span></div><div class="theme-options"><button data-theme="sky" class="theme-choice selected">سماوي</button><button data-theme="pink" class="theme-choice">وردي</button><button data-theme="lavender" class="theme-choice">لافندر</button><button data-theme="hamour" class="theme-choice">قاع الهامور</button><button data-theme="cinnamoroll" class="theme-choice cinnamoroll-choice">سينيمون رول</button></div></article>
+            <article class="window-frame settings-card avatar-settings"><div class="titlebar"><span>الصورة الرمزية</span><span>✿</span></div><p>اختر رمزًا يمثلك في ملفك الشخصي.</p><div id="avatar-options" class="avatar-options"></div></article>
+            <article class="window-frame settings-card quick-settings"><div class="titlebar"><span>اختياراتك السريعة</span><span>⌁</span></div><p>حدّد حتى ست ألعاب، ثم رتّب ظهورها في الرئيسية.</p><div id="quick-choice-settings" class="quick-choice-settings"></div></article>
             <article class="window-frame settings-card data-card"><div class="titlebar"><span>بياناتك المحلية</span><span>▣</span></div><p>يتم الحفظ تلقائيًا باستخدام Local Storage، ولا تُرسل بياناتك إلى أي خادم.</p><button id="export-data" class="tiny-button">↓ تنزيل نسخة احتياطية</button><button id="reset-data" class="danger-button">إعادة ضبط التقدم</button></article>
           </div>
         </section>
