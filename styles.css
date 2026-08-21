@@ -305,6 +305,7 @@ body[data-theme='cinnamoroll'] .cinnamoroll-decor:not([hidden]) {
   filter: drop-shadow(0 5px 7px #6085ad55);
 }
 @media (min-width: 761px) and (max-width: 1359px) {
+  body[data-theme='cinnamoroll'] .cinnamoroll-decor:not([hidden]) { animation: none !important; }
   body[data-theme='cinnamoroll'] .cinnamoroll-a {
     width: clamp(64px, 10vw, 112px);
     top: 46px;
@@ -326,6 +327,7 @@ body[data-theme='cinnamoroll'] .cinnamoroll-decor:not([hidden]) {
   }
 }
 @media (max-width: 760px) {
+  body[data-theme='cinnamoroll'] .cinnamoroll-decor:not([hidden]) { animation: none !important; }
   body[data-theme='cinnamoroll'] .cinnamoroll-a {
     width: clamp(46px, 13vw, 66px);
     top: 42px;
