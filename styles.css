@@ -353,14 +353,16 @@ body[data-theme='cinnamoroll'] .cinnamoroll-decor:not([hidden]) {
   body[data-theme='cinnamoroll'] .cinnamoroll-c { top: 285px; width: 40px; }
 }
 
-/* طبقة زينة ثابتة للشاشة: لا تتحرك مع محتوى الصفحة عند التمرير. */
+/* طبقة زينة مثبتة داخل هيكل الواجهة، كأنها قائمة علوية مستقلة. */
 .theme-decor-layer {
-  position: fixed;
-  z-index: 4;
-  inset: 0;
-  overflow: hidden;
+  position: sticky;
+  top: 0;
+  z-index: 16;
+  width: 100%;
+  height: 1px;
+  margin-bottom: -1px;
+  overflow: visible;
   pointer-events: none;
-  transform: translateZ(0);
 }
 body[data-theme='cinnamoroll'] .theme-decor-layer .cinnamoroll-decor:not([hidden]) {
   position: absolute;
@@ -373,24 +375,24 @@ body[data-theme='cinnamoroll'] .theme-decor-layer .cinnamoroll-decor:not([hidden
   animation: cinnamoroll-float 6s ease-in-out infinite !important;
 }
 body[data-theme='cinnamoroll'] .theme-decor-layer .cinnamoroll-a { width: clamp(72px, 7vw, 112px); top: 48px; left: 13%; }
-body[data-theme='cinnamoroll'] .theme-decor-layer .cinnamoroll-b { width: clamp(76px, 7.5vw, 118px); top: 24%; left: 2.5%; animation-delay: -1.2s !important; }
-body[data-theme='cinnamoroll'] .theme-decor-layer .cinnamoroll-c { width: clamp(60px, 6vw, 96px); top: 33%; right: 2.5%; animation-delay: -2.4s !important; }
-body[data-theme='cinnamoroll'] .theme-decor-layer .cinnamoroll-d { width: clamp(54px, 5vw, 80px); top: 68px; left: 31%; animation-delay: -3.1s !important; }
-body[data-theme='cinnamoroll'] .theme-decor-layer .cinnamoroll-e { width: clamp(58px, 5.5vw, 88px); top: 57%; left: 3%; animation-delay: -4.3s !important; }
-body[data-theme='cinnamoroll'] .theme-decor-layer .cinnamoroll-f { width: clamp(50px, 4.5vw, 73px); top: 66%; right: 3%; animation-delay: -5.2s !important; }
+body[data-theme='cinnamoroll'] .theme-decor-layer .cinnamoroll-b { width: clamp(76px, 7.5vw, 118px); top: 24vh; left: 2.5%; animation-delay: -1.2s !important; }
+body[data-theme='cinnamoroll'] .theme-decor-layer .cinnamoroll-c { width: clamp(60px, 6vw, 96px); top: 38vh; right: 2.5%; animation-delay: -2.4s !important; }
+body[data-theme='cinnamoroll'] .theme-decor-layer .cinnamoroll-d { width: clamp(54px, 5vw, 80px); top: 62vh; right: 4%; animation-delay: -3.1s !important; }
+body[data-theme='cinnamoroll'] .theme-decor-layer .cinnamoroll-e { width: clamp(58px, 5.5vw, 88px); top: 56vh; left: 3%; animation-delay: -4.3s !important; }
+body[data-theme='cinnamoroll'] .theme-decor-layer .cinnamoroll-f { width: clamp(50px, 4.5vw, 73px); top: 74vh; left: 31%; animation-delay: -5.2s !important; }
 @media (min-width: 761px) and (max-width: 1359px) {
   body[data-theme='cinnamoroll'] .theme-decor-layer .cinnamoroll-a { width: clamp(62px, 9vw, 104px); top: 43px; left: 8%; }
-  body[data-theme='cinnamoroll'] .theme-decor-layer .cinnamoroll-b { width: clamp(66px, 9vw, 106px); top: 22%; left: 2%; }
-  body[data-theme='cinnamoroll'] .theme-decor-layer .cinnamoroll-c { width: clamp(55px, 7vw, 80px); top: 30%; right: 2%; }
-  body[data-theme='cinnamoroll'] .theme-decor-layer .cinnamoroll-d { width: clamp(48px, 6vw, 68px); top: 56px; left: 35%; }
-  body[data-theme='cinnamoroll'] .theme-decor-layer .cinnamoroll-e { width: clamp(50px, 6.5vw, 74px); top: 58%; left: 2%; }
-  body[data-theme='cinnamoroll'] .theme-decor-layer .cinnamoroll-f { width: clamp(44px, 5.5vw, 62px); top: 66%; right: 2%; }
+  body[data-theme='cinnamoroll'] .theme-decor-layer .cinnamoroll-b { width: clamp(66px, 9vw, 106px); top: 23vh; left: 2%; }
+  body[data-theme='cinnamoroll'] .theme-decor-layer .cinnamoroll-c { width: clamp(55px, 7vw, 80px); top: 36vh; right: 2%; }
+  body[data-theme='cinnamoroll'] .theme-decor-layer .cinnamoroll-d { width: clamp(48px, 6vw, 68px); top: 63vh; right: 2%; }
+  body[data-theme='cinnamoroll'] .theme-decor-layer .cinnamoroll-e { width: clamp(50px, 6.5vw, 74px); top: 55vh; left: 2%; }
+  body[data-theme='cinnamoroll'] .theme-decor-layer .cinnamoroll-f { width: clamp(44px, 5.5vw, 62px); top: 72vh; left: 34%; }
 }
 @media (max-width: 760px) {
   body[data-theme='cinnamoroll'] .theme-decor-layer .cinnamoroll-a { width: clamp(42px, 12vw, 60px); top: 39px; left: 42%; }
-  body[data-theme='cinnamoroll'] .theme-decor-layer .cinnamoroll-b { width: clamp(48px, 14vw, 68px); top: 22%; left: 8px; }
-  body[data-theme='cinnamoroll'] .theme-decor-layer .cinnamoroll-c { width: clamp(38px, 11vw, 52px); top: 31%; right: 6px; }
-  body[data-theme='cinnamoroll'] .theme-decor-layer .cinnamoroll-d { width: clamp(34px, 9vw, 46px); top: 55px; left: 13%; }
-  body[data-theme='cinnamoroll'] .theme-decor-layer .cinnamoroll-e { width: clamp(40px, 12vw, 56px); top: 56%; left: 6px; }
-  body[data-theme='cinnamoroll'] .theme-decor-layer .cinnamoroll-f { width: clamp(36px, 10vw, 48px); top: 68%; right: 5px; }
+  body[data-theme='cinnamoroll'] .theme-decor-layer .cinnamoroll-b { width: clamp(48px, 14vw, 68px); top: 22vh; left: 8px; }
+  body[data-theme='cinnamoroll'] .theme-decor-layer .cinnamoroll-c { width: clamp(38px, 11vw, 52px); top: 35vh; right: 6px; }
+  body[data-theme='cinnamoroll'] .theme-decor-layer .cinnamoroll-d { width: clamp(34px, 9vw, 46px); top: 62vh; right: 7px; }
+  body[data-theme='cinnamoroll'] .theme-decor-layer .cinnamoroll-e { width: clamp(40px, 12vw, 56px); top: 53vh; left: 6px; }
+  body[data-theme='cinnamoroll'] .theme-decor-layer .cinnamoroll-f { width: clamp(36px, 10vw, 48px); top: 74vh; left: 35%; }
 }
