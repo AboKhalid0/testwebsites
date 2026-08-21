@@ -50,7 +50,80 @@ const fmtTime = seconds => { const hours = Math.floor(seconds / 3600); const min
 const formatGameTimer = seconds => { const hours = Math.floor(seconds / 3600); const mins = Math.floor(seconds % 3600 / 60); const secs = seconds % 60; return `${String(hours).padStart(2, '0')}:${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`; };
 function catAsset(source, className, alt) { return `<img class="${className}" src="${source}" alt="${alt}" onerror="this.hidden=true;this.nextElementSibling.hidden=false"><span class="cat-asset-fallback" hidden aria-hidden="true">🐱</span>`; }
 function gameVisual(game, className) { const source = gameImageFiles[game.id]; return source ? `<img class="${className}" src="${source}" alt="" onerror="this.hidden=true;this.nextElementSibling.hidden=false"><span class="game-icon-fallback" hidden aria-hidden="true">${game.icon}</span>` : game.icon; }
-function playAnimalSound(source) { const audio = new Audio(source); audio.preload = 'auto'; audio.volume = .7; audio.play().catch(() => {}); }
+/* مؤثرات لعبة القط: تُحمّل مبكراً وتُشغّل عبر Web Audio بعد أول لمسة.
+   هذا يمنع تأخر الشبكة وتقييد التشغيل التلقائي في متصفحات الجوال. */
+const animalSoundSources = ['foundcat.mp3', 'cross.mp3', 'wrongcross.mp3'];
+const animalSoundBank = new Map();
+let animalAudioContext = null;
+let animalSoundsPrepared = false;
+
+function prepareAnimalSounds() {
+  if (animalSoundsPrepared) return;
+  animalSoundsPrepared = true;
+
+  animalSoundSources.forEach(source => {
+    const audio = new Audio(source);
+    audio.preload = 'auto';
+    audio.volume = .7;
+    audio.load();
+    animalSoundBank.set(source, { audio, buffer: null, activeNode: null });
+  });
+
+  const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+  if (!AudioContextClass) return;
+  try {
+    animalAudioContext = new AudioContextClass();
+  } catch (_) {
+    animalAudioContext = null;
+    return;
+  }
+
+  animalSoundSources.forEach(source => {
+    fetch(source, { cache: 'force-cache' })
+      .then(response => response.ok ? response.arrayBuffer() : null)
+      .then(encoded => encoded ? animalAudioContext.decodeAudioData(encoded) : null)
+      .then(buffer => {
+        const entry = animalSoundBank.get(source);
+        if (entry && buffer) entry.buffer = buffer;
+      })
+      .catch(() => {});
+  });
+}
+
+function primeAnimalAudio() {
+  prepareAnimalSounds();
+  if (animalAudioContext && animalAudioContext.state !== 'running') animalAudioContext.resume().catch(() => {});
+}
+
+function playAnimalSound(source) {
+  prepareAnimalSounds();
+  const entry = animalSoundBank.get(source);
+  if (!entry) return;
+
+  if (animalAudioContext?.state === 'running' && entry.buffer) {
+    entry.activeNode?.stop();
+    const node = animalAudioContext.createBufferSource();
+    const gain = animalAudioContext.createGain();
+    gain.gain.value = .7;
+    node.buffer = entry.buffer;
+    node.connect(gain).connect(animalAudioContext.destination);
+    node.onended = () => { if (entry.activeNode === node) entry.activeNode = null; };
+    entry.activeNode = node;
+    node.start(0);
+    return;
+  }
+
+  /* بديل للمتصفحات التي لا تدعم Web Audio: نعيد استخدام الملف المحمّل نفسه،
+     بدلاً من طلبه من الشبكة مع كل نقرة. */
+  const audio = entry.audio;
+  audio.pause();
+  try { audio.currentTime = 0; } catch (_) {}
+  audio.play().catch(() => {});
+}
+
+prepareAnimalSounds();
+document.addEventListener('pointerdown', primeAnimalAudio, { passive: true });
+document.addEventListener('touchstart', primeAnimalAudio, { passive: true });
 function completedLevels(s, gameId) { return Object.values(s.games?.[gameId]?.levels || {}).filter(level => level.completed).length; }
 function completedFenceLevels(s) { return Object.entries(s.games?.logic?.levels || {}).filter(([level, data]) => /^\d+$/.test(level) && data.completed).length; }
 function getLevelData(gameId, level) { const levels = state.games[gameId].levels || (state.games[gameId].levels = {}); return levels[level] || (levels[level] = { completed: false, attempts: 0, stars: 0, bestScore: 0, bestTime: 0 }); }
@@ -169,7 +242,7 @@ function renderSettings() {
 
 function openGame(id) { currentGame = id; document.body.dataset.activeGame = id; session = { startedAt: Date.now(), score: 0, attempts: 0, correct: 0, streak: 0, completed: false, timer: null, config: {} }; $('#playing-label').textContent = games[id].title; $('#game-play-title').textContent = games[id].title; $('#session-score').textContent = '0'; $('#game-timer').textContent = formatGameTimer(0); switchPage('play'); renderGameIntro(); }
 function beginTimer() { clearInterval(session.timer); session.timer = setInterval(() => { const seconds = Math.floor((Date.now() - session.startedAt) / 1000); $('#game-timer').textContent = formatGameTimer(seconds); }, 1000); }
-function renderGameIntro() { const game = games[currentGame]; $('#game-area').innerHTML = `<div class="game-intro"><div class="big-icon">${gameVisual(game, 'intro-game-image')}</div><h2>${game.title}</h2><p>${game.description}</p><p><b>المهارة:</b> ${game.skill} · <b>المكافأة:</b> حتى 100 نقطة</p><button class="pixel-button primary" id="start-game">ابدأ الآن ✦</button></div>`; $('#start-game').addEventListener('click', () => { session.startedAt = Date.now(); beginTimer(); ({ memory: startMemory, math: startMath, word: startWord, pattern: startPattern, sudoku: startSudoku, chess: startChess, animals: startAnimals, logic: startLogic })[currentGame](); }); }
+function renderGameIntro() { const game = games[currentGame]; $('#game-area').innerHTML = `<div class="game-intro"><div class="big-icon">${gameVisual(game, 'intro-game-image')}</div><h2>${game.title}</h2><p>${game.description}</p><p><b>المهارة:</b> ${game.skill} · <b>المكافأة:</b> حتى 100 نقطة</p><button class="pixel-button primary" id="start-game">ابدأ الآن ✦</button></div>`; $('#start-game').addEventListener('click', () => { primeAnimalAudio(); session.startedAt = Date.now(); beginTimer(); ({ memory: startMemory, math: startMath, word: startWord, pattern: startPattern, sudoku: startSudoku, chess: startChess, animals: startAnimals, logic: startLogic })[currentGame](); }); }
 function updateSessionScore(add) { session.score += add; $('#session-score').textContent = session.score; }
 function gameMeta(content) { return `<div class="game-meta">${content}</div>`; }
 
