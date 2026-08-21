@@ -389,6 +389,12 @@ body[data-theme='cinnamoroll'] .theme-decor-layer .cinnamoroll-f { width: clamp(
   body[data-theme='cinnamoroll'] .theme-decor-layer .cinnamoroll-f { width: clamp(44px, 5.5vw, 62px); top: 72vh; left: 34%; }
 }
 @media (max-width: 760px) {
+
+  body[data-theme='cinnamoroll'] .theme-decor-layer .cinnamoroll-decor:not([hidden]) {
+    position: fixed !important;
+    animation: none !important;
+  }
+  
   body[data-theme='cinnamoroll'] .theme-decor-layer .cinnamoroll-a { width: clamp(42px, 12vw, 60px); top: 39px; left: 42%; }
   body[data-theme='cinnamoroll'] .theme-decor-layer .cinnamoroll-b { width: clamp(48px, 14vw, 68px); top: 22vh; left: 8px; }
   body[data-theme='cinnamoroll'] .theme-decor-layer .cinnamoroll-c { width: clamp(38px, 11vw, 52px); top: 35vh; right: 6px; }
