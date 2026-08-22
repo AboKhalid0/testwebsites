@@ -23,6 +23,19 @@
         <img class="cinnamoroll-decor cinnamoroll-d" src="Cinnamoroll.png" alt="" onerror="this.hidden=true" />
         <img class="cinnamoroll-decor cinnamoroll-e" src="Cinnamoroll1.png" alt="" onerror="this.hidden=true" />
         <img class="cinnamoroll-decor cinnamoroll-f" src="Cinnamoroll2.png" alt="" onerror="this.hidden=true" />
+        <div class="aero-decor" aria-hidden="true">
+          <i class="aero-cloud aero-cloud-a"></i><i class="aero-cloud aero-cloud-b"></i>
+          <i class="aero-bubble aero-bubble-a"></i><i class="aero-bubble aero-bubble-b"></i><i class="aero-bubble aero-bubble-c"></i>
+          <i class="aero-gloss aero-gloss-a"></i><i class="aero-gloss aero-gloss-b"></i>
+        </div>
+        <div class="chihaya-decor" aria-hidden="true">
+          <img class="chihaya-image chihaya-a" src="chihaya1.png" alt="" onerror="this.hidden=true" />
+          <img class="chihaya-image chihaya-b" src="chihaya2.png" alt="" onerror="this.hidden=true" />
+          <img class="chihaya-image chihaya-c" src="chihaya3.png" alt="" onerror="this.hidden=true" />
+          <img class="chihaya-image chihaya-d" src="chihaya1.png" alt="" onerror="this.hidden=true" />
+          <img class="chihaya-image chihaya-e" src="chihaya2.png" alt="" onerror="this.hidden=true" />
+          <img class="chihaya-image chihaya-f" src="chihaya3.png" alt="" onerror="this.hidden=true" />
+        </div>
       </div>
       <header class="topbar window-frame">
         <div class="titlebar">
@@ -32,8 +45,8 @@
         </div>
         <div class="hero-row">
           <a class="brand" href="#home" aria-label="بيت الألغاز">
-            <span class="brand-sparkle">✦</span>
-            <span>بيت الألغاز</span><small>PUZZLE PARLOR</small>
+            <img class="chihaya-brand-banner" src="bannerchiyaya.png" alt="" onerror="this.hidden=true" />
+            <span class="brand-text"><span class="brand-sparkle">✦</span><span>بيت الألغاز</span><small>PUZZLE PARLOR</small></span>
           </a>
           <div class="hero-note">✨ مكان صغير لتقوية عقلك<br />والاستمتاع بوقتك</div>
           <div class="status-bubble"><span class="online-dot"></span> اللاعب متصل الآن</div>
@@ -181,7 +194,7 @@
           <div class="page-heading window-frame"><div class="titlebar"><span>إعدادات البيت</span><span>⚙</span></div><div><p class="eyebrow">اجعل البيت على ذوقك</p><h1 id="settings-title">الإعدادات</h1><p>كل البيانات محفوظة داخل متصفحك فقط.</p></div></div>
           <div class="settings-grid">
             <article class="window-frame settings-card"><div class="titlebar"><span>هوية اللاعب</span><span>✎</span></div><label>الاسم الظاهر<input id="settings-name" maxlength="18" /></label><button id="save-name" class="pixel-button">حفظ الاسم</button></article>
-            <article class="window-frame settings-card"><div class="titlebar"><span>شكل السماء</span><span>☁</span></div><div class="theme-options"><button data-theme="sky" class="theme-choice selected">سماوي</button><button data-theme="pink" class="theme-choice">وردي</button><button data-theme="lavender" class="theme-choice">لافندر</button><button data-theme="hamour" class="theme-choice">قاع الهامور</button><button data-theme="cinnamoroll" class="theme-choice cinnamoroll-choice">سينيمون رول</button></div></article>
+            <article class="window-frame settings-card"><div class="titlebar"><span>شكل السماء</span><span>☁</span></div><div class="theme-options"><button data-theme="sky" class="theme-choice selected">سماوي</button><button data-theme="pink" class="theme-choice">وردي</button><button data-theme="lavender" class="theme-choice">لافندر</button><button data-theme="hamour" class="theme-choice">قاع الهامور</button><button data-theme="cinnamoroll" class="theme-choice cinnamoroll-choice">سينيمون رول</button><button data-theme="aero" class="theme-choice aero-choice">Frutiger Aero</button><button data-theme="chihayafuru" class="theme-choice chihaya-choice">Chihayafuru</button></div></article>
             <article class="window-frame settings-card avatar-settings"><div class="titlebar"><span>الصورة الرمزية</span><span>✿</span></div><p>اختر رمزًا يمثلك في ملفك الشخصي.</p><div id="avatar-options" class="avatar-options"></div></article>
             <article class="window-frame settings-card quick-settings"><div class="titlebar"><span>اختياراتك السريعة</span><span>⌁</span></div><p>حدّد حتى ست ألعاب، ثم رتّب ظهورها في الرئيسية.</p><div id="quick-choice-settings" class="quick-choice-settings"></div></article>
             <article class="window-frame settings-card data-card"><div class="titlebar"><span>بياناتك المحلية</span><span>▣</span></div><p>يتم الحفظ تلقائيًا باستخدام Local Storage، ولا تُرسل بياناتك إلى أي خادم.</p><button id="export-data" class="tiny-button">↓ تنزيل نسخة احتياطية</button><button id="reset-data" class="danger-button">إعادة ضبط التقدم</button></article>

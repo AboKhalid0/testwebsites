@@ -342,3 +342,85 @@ body[data-theme='cinnamoroll'] .cinnamoroll-f { width: clamp(47px, 4.4vw, 68px);
   body[data-theme='cinnamoroll'] .cinnamoroll-e { width: clamp(33px, 9.5vw, 44px); top: 445px; left: 5px; }
   body[data-theme='cinnamoroll'] .cinnamoroll-f { width: clamp(30px, 8.5vw, 39px); top: 530px; right: 8px; }
 }
+
+/* ثيم Frutiger Aero: سماء زرقاء لامعة، زجاج مائي، غيوم وفقاعات حية. */
+.theme-choice[data-theme='aero']:before { background: radial-gradient(circle at 35% 30%, #fff 0 18%, transparent 20%), linear-gradient(135deg, #39bfff, #baf7ff 55%, #8bd377); }
+.aero-choice { color: #2582ad; }
+body[data-theme='aero'] {
+  --sky: #bcefff;
+  --sky-deep: #64c7ef;
+  --paper: #f9ffff;
+  --line: #68b8d0;
+  background-color: #b8edff;
+  background-image: radial-gradient(circle at 15% 13%, #ffffffb8 0 2px, transparent 3px), radial-gradient(circle at 72% 8%, #ffffff99 0 3px, transparent 4px), linear-gradient(165deg, #63ccf4 0%, #c8f7ff 38%, #edfff8 52%, #b4e78c 53%, #7cc86c 100%);
+  background-attachment: fixed;
+}
+body[data-theme='aero'] .hero-row { background: linear-gradient(100deg, #48bce9cc, #c8f8ffdf 49%, #86d8a7d9); }
+body[data-theme='aero'] .window-frame { border-color: #65bcd3; box-shadow: 3px 3px 0 #ffffffc7, 6px 6px 0 #4fa6c188; }
+body[data-theme='aero'] .titlebar { color: #28728b; border-bottom-color: #73c4d7; background: repeating-linear-gradient(0deg, #c9f6ff, #c9f6ff 2px, #efffff 2px, #efffff 4px); }
+body[data-theme='aero'] .theme-choice[data-theme='aero'].selected { color: #187da3; border-color: #46bad5; background: #e6fbff; }
+body[data-theme='aero'] .theme-choice[data-theme='aero'].selected:before { box-shadow: 0 0 0 3px #bdeffc; }
+.aero-decor { position: absolute; inset: 0; display: none; pointer-events: none; }
+body[data-theme='aero'] .aero-decor { display: block; }
+.aero-decor i { position: absolute; display: block; pointer-events: none; }
+.aero-cloud { width: clamp(88px, 11vw, 170px); height: clamp(35px, 4.5vw, 68px); opacity: .82; background: radial-gradient(circle at 23% 73%, #fff 0 20%, transparent 21%), radial-gradient(circle at 45% 43%, #fff 0 31%, transparent 32%), radial-gradient(circle at 69% 62%, #fff 0 25%, transparent 26%), radial-gradient(ellipse at 50% 84%, #fff 0 33%, transparent 34%); filter: drop-shadow(0 5px 6px #2795bd35); }
+.aero-cloud-a { top: 43px; left: 4%; }.aero-cloud-b { top: 82px; right: 4%; transform: scale(.76); opacity: .7; }
+.aero-bubble { width: clamp(25px, 3.4vw, 54px); aspect-ratio: 1; border: 2px solid #ffffffbc; border-radius: 50%; background: radial-gradient(circle at 33% 27%, #fff 0 10%, #ffffff88 11% 19%, transparent 20%), radial-gradient(circle at 58% 68%, #8be8ff55 0 42%, transparent 44%), #85dcfa44; box-shadow: inset -5px -7px 10px #259ecc2b, 0 5px 7px #1d8dbd3d; }
+.aero-bubble-a { top: 192px; right: 4%; animation: aero-bubble-rise 6.5s ease-in-out infinite; }.aero-bubble-b { top: 410px; left: 3%; transform: scale(.72); animation: aero-bubble-rise 7.2s ease-in-out -2.2s infinite; }.aero-bubble-c { top: 570px; right: 6%; transform: scale(.58); animation: aero-bubble-rise 6.8s ease-in-out -4.1s infinite; }
+.aero-gloss { width: clamp(68px, 8vw, 122px); height: clamp(22px, 2.5vw, 40px); border: 2px solid #fff9; border-bottom: 0; border-radius: 100% 100% 0 0; opacity: .8; transform: rotate(-12deg); }
+.aero-gloss-a { top: 282px; left: 1%; }.aero-gloss-b { top: 488px; right: 1%; transform: rotate(18deg) scale(.72); }
+@keyframes aero-bubble-rise { 0%, 100% { translate: 0 0; } 50% { translate: 5px -18px; } }
+
+/* ثيم Chihayafuru: ورق واشي، ألوان كيمونو هادئة، وبطاقات كاروتا تتبدل بصور المستخدم. */
+.theme-choice[data-theme='chihayafuru']:before { background: linear-gradient(135deg, #182c52 0 35%, #f8eee0 36% 67%, #bf4a40 68%); }
+.chihaya-choice { color: #79543f; }
+body[data-theme='chihayafuru'] {
+  --sky: #e9e5dc;
+  --sky-deep: #b9c7d4;
+  --paper: #fffdf7;
+  --line: #697c91;
+  background-color: #ebe7dd;
+  background-image: repeating-linear-gradient(90deg, #765f4b0a 0 1px, transparent 1px 5px), repeating-linear-gradient(0deg, #765f4b08 0 1px, transparent 1px 6px), linear-gradient(145deg, #e5edf1 0%, #f7f1e6 46%, #ead8c5 100%);
+  background-attachment: fixed;
+}
+body[data-theme='chihayafuru'] .hero-row { background: linear-gradient(105deg, #263b61, #8b5361 49%, #d49665); }
+body[data-theme='chihayafuru'] .brand { text-shadow: 2px 2px 0 #273653, -1px -1px 0 #273653, 0 3px 6px #1b2b4870; }
+body[data-theme='chihayafuru'] .brand-text { position: relative; z-index: 1; display: block; }
+.chihaya-brand-banner { display: none; }
+body[data-theme='chihayafuru'] .chihaya-brand-banner:not([hidden]) { position: absolute; z-index: 0; top: 50%; left: 50%; display: block; width: clamp(170px, 22vw, 300px); height: clamp(68px, 8.8vw, 120px); max-width: 145%; object-fit: contain; object-position: center; pointer-events: none; transform: translate(-50%, -52%); filter: drop-shadow(0 4px 5px #182b4e4d); }
+body[data-theme='chihayafuru'] .window-frame { border-color: #75899b; box-shadow: 3px 3px 0 #fffdf7, 6px 6px 0 #6a789060; }
+body[data-theme='chihayafuru'] .titlebar { color: #46566e; border-bottom-color: #8a9aaa; background: repeating-linear-gradient(0deg, #e5edf0, #e5edf0 2px, #f7f4ed 2px, #f7f4ed 4px); }
+body[data-theme='chihayafuru'] .theme-choice[data-theme='chihayafuru'].selected { color: #8a423d; border-color: #ba625b; background: #fff5ed; }
+body[data-theme='chihayafuru'] .theme-choice[data-theme='chihayafuru'].selected:before { box-shadow: 0 0 0 3px #f2d8ca; }
+.chihaya-decor { position: absolute; inset: 0; display: none; pointer-events: none; }
+body[data-theme='chihayafuru'] .chihaya-decor { display: block; }
+.chihaya-image { position: absolute; display: block; width: clamp(52px, 6vw, 92px); max-width: none; height: auto; max-height: 130px; object-fit: contain; object-position: center; pointer-events: none; filter: drop-shadow(0 4px 5px #3f2b313c); transform: rotate(var(--tilt, 0deg)); }
+.chihaya-image[hidden] { display: none !important; }
+.chihaya-a { --tilt: -7deg; top: 46px; left: 10%; }.chihaya-b { --tilt: 6deg; top: 48px; right: 11%; }.chihaya-c { --tilt: 4deg; top: 220px; left: 2%; }.chihaya-d { --tilt: -5deg; top: 318px; right: 2%; }.chihaya-e { --tilt: 6deg; top: 520px; left: 3%; }.chihaya-f { --tilt: -4deg; top: 602px; right: 6%; }
+@media (min-width: 601px) and (max-width: 1100px) {
+  .chihaya-image { width: clamp(46px, 7.5vw, 72px); max-height: 105px; }.chihaya-a { top: 40px; left: 10%; }.chihaya-b { top: 42px; right: 10%; }.chihaya-c { top: 205px; }.chihaya-d { top: 300px; }.chihaya-e { top: 500px; }.chihaya-f { top: 575px; }
+  .aero-cloud-a { left: 3%; }.aero-cloud-b { right: 2%; }.aero-bubble-a { top: 180px; }.aero-bubble-b { top: 390px; }.aero-bubble-c { top: 545px; }
+}
+@media (max-width: 600px) {
+  body[data-theme='chihayafuru'] .chihaya-brand-banner:not([hidden]) { width: min(220px, 68vw); height: 82px; }
+  .chihaya-image { width: clamp(38px, 11vw, 54px); max-height: 76px; }.chihaya-a { top: 38px; left: 14%; }.chihaya-b { top: 41px; right: 12%; }.chihaya-c { top: 180px; left: 5px; }.chihaya-d { top: 275px; right: 5px; }.chihaya-e { top: 440px; left: 5px; }.chihaya-f { top: 522px; right: 8px; }
+  .aero-cloud-a { width: 80px; top: 42px; left: 2%; }.aero-cloud-b { width: 68px; top: 78px; right: 1%; }.aero-bubble-a { width: 31px; top: 175px; right: 4px; }.aero-bubble-b { width: 24px; top: 360px; left: 4px; }.aero-bubble-c { width: 20px; top: 520px; right: 6px; }.aero-gloss-a { top: 245px; }.aero-gloss-b { top: 425px; }
+}
+
+/* تفعيل طبقة الزينة داخل بنية الصفحة لكل ثيم بصري، مع إخفاء زينة سينيمون رول
+   خارج ثيمها حتى لا تظهر الصور أو بدائلها في أي تصميم آخر. */
+.cinnamoroll-decor {
+  display: none;
+}
+
+body[data-theme='cinnamoroll'] .site-shell,
+body[data-theme='aero'] .site-shell,
+body[data-theme='chihayafuru'] .site-shell {
+  position: relative;
+}
+
+body[data-theme='cinnamoroll'] .theme-decor-layer,
+body[data-theme='aero'] .theme-decor-layer,
+body[data-theme='chihayafuru'] .theme-decor-layer {
+  display: block;
+}
