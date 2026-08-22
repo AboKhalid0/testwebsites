@@ -291,13 +291,14 @@ body[data-theme='cinnamoroll'] .hero-row { background: linear-gradient(105deg, #
   .animal-gesture-guide .touch-gesture { display: inline-block; }
 }
 
-/* زينة سينيمون رول: طبقة مباشرة على نافذة المتصفح، مستقلة تماماً عن التمرير. */
+/* زينة سينيمون رول: جزء ثابت من مخطط الصفحة، لا طبقة مثبتة على نافذة المتصفح. */
+body[data-theme='cinnamoroll'] .site-shell { position: relative; }
 .theme-decor-layer {
-  position: fixed;
-  z-index: 8;
+  position: absolute;
+  z-index: 2;
   inset: 0;
   display: none;
-  overflow: hidden;
+  overflow: visible;
   pointer-events: none;
 }
 body[data-theme='cinnamoroll'] .theme-decor-layer { display: block; }
@@ -316,28 +317,28 @@ body[data-theme='cinnamoroll'] .theme-decor-layer .cinnamoroll-decor:not([hidden
   0%, 100% { transform: translate3d(0, 0, 0); }
   50% { transform: translate3d(0, -10px, 0); }
 }
-/* الشاشات الواسعة: الصور المتشابهة موزعة على جهات متباعدة. */
-body[data-theme='cinnamoroll'] .cinnamoroll-a { width: clamp(58px, 6vw, 96px); top: 48px; left: 8%; }
-body[data-theme='cinnamoroll'] .cinnamoroll-b { width: clamp(62px, 6.5vw, 104px); top: 48px; right: 8%; animation-delay: -1.1s; }
-body[data-theme='cinnamoroll'] .cinnamoroll-c { width: clamp(52px, 5vw, 78px); top: 31vh; left: 2%; animation-delay: -2.2s; }
-body[data-theme='cinnamoroll'] .cinnamoroll-d { width: clamp(50px, 4.7vw, 74px); top: 56vh; right: 2%; animation-delay: -3.3s; }
-body[data-theme='cinnamoroll'] .cinnamoroll-e { width: clamp(52px, 5.2vw, 80px); bottom: 9%; left: 3%; animation-delay: -4.4s; }
-body[data-theme='cinnamoroll'] .cinnamoroll-f { width: clamp(47px, 4.4vw, 68px); bottom: 8%; right: 21%; animation-delay: -5.1s; }
+/* الشاشات الواسعة: الصور المتشابهة موزعة على جهات متباعدة من مخطط الصفحة. */
+body[data-theme='cinnamoroll'] .cinnamoroll-a { width: clamp(58px, 6vw, 96px); top: 46px; left: 10%; }
+body[data-theme='cinnamoroll'] .cinnamoroll-b { width: clamp(62px, 6.5vw, 104px); top: 52px; right: 12%; animation-delay: -1.1s; }
+body[data-theme='cinnamoroll'] .cinnamoroll-c { width: clamp(52px, 5vw, 78px); top: 235px; left: 2%; animation-delay: -2.2s; }
+body[data-theme='cinnamoroll'] .cinnamoroll-d { width: clamp(50px, 4.7vw, 74px); top: 330px; right: 2%; animation-delay: -3.3s; }
+body[data-theme='cinnamoroll'] .cinnamoroll-e { width: clamp(52px, 5.2vw, 80px); top: 530px; left: 3%; animation-delay: -4.4s; }
+body[data-theme='cinnamoroll'] .cinnamoroll-f { width: clamp(47px, 4.4vw, 68px); top: 610px; right: 6%; animation-delay: -5.1s; }
 /* الآيباد والأجهزة اللوحية. */
 @media (min-width: 601px) and (max-width: 1100px) {
-  body[data-theme='cinnamoroll'] .cinnamoroll-a { width: clamp(50px, 8vw, 76px); top: 42px; left: 8%; }
-  body[data-theme='cinnamoroll'] .cinnamoroll-b { width: clamp(54px, 8.5vw, 82px); top: 43px; right: 7%; }
-  body[data-theme='cinnamoroll'] .cinnamoroll-c { width: clamp(44px, 6.5vw, 62px); top: 30vh; left: 2%; }
-  body[data-theme='cinnamoroll'] .cinnamoroll-d { width: clamp(42px, 6vw, 58px); top: 58vh; right: 2%; }
-  body[data-theme='cinnamoroll'] .cinnamoroll-e { width: clamp(43px, 6.5vw, 61px); bottom: 8%; left: 2%; }
-  body[data-theme='cinnamoroll'] .cinnamoroll-f { width: clamp(39px, 5.5vw, 53px); bottom: 7%; right: 22%; }
+  body[data-theme='cinnamoroll'] .cinnamoroll-a { width: clamp(50px, 8vw, 76px); top: 40px; left: 10%; }
+  body[data-theme='cinnamoroll'] .cinnamoroll-b { width: clamp(54px, 8.5vw, 82px); top: 44px; right: 10%; }
+  body[data-theme='cinnamoroll'] .cinnamoroll-c { width: clamp(44px, 6.5vw, 62px); top: 215px; left: 2%; }
+  body[data-theme='cinnamoroll'] .cinnamoroll-d { width: clamp(42px, 6vw, 58px); top: 305px; right: 2%; }
+  body[data-theme='cinnamoroll'] .cinnamoroll-e { width: clamp(43px, 6.5vw, 61px); top: 510px; left: 2%; }
+  body[data-theme='cinnamoroll'] .cinnamoroll-f { width: clamp(39px, 5.5vw, 53px); top: 590px; right: 5%; }
 }
-/* الجوال: واضحة لكن صغيرة بما يكفي لعدم تغطية عناصر اللعب. */
+/* الجوال: واضحة لكن صغيرة بما يكفي لعدم تغطية عناصر الصفحة. */
 @media (max-width: 600px) {
-  body[data-theme='cinnamoroll'] .cinnamoroll-a { width: clamp(36px, 11vw, 52px); top: 39px; left: 11%; }
-  body[data-theme='cinnamoroll'] .cinnamoroll-b { width: clamp(38px, 11.5vw, 55px); top: 40px; right: 9%; }
-  body[data-theme='cinnamoroll'] .cinnamoroll-c { width: clamp(33px, 9.5vw, 44px); top: 29vh; left: 5px; }
-  body[data-theme='cinnamoroll'] .cinnamoroll-d { width: clamp(31px, 9vw, 41px); top: 53vh; right: 5px; }
-  body[data-theme='cinnamoroll'] .cinnamoroll-e { width: clamp(33px, 9.5vw, 44px); bottom: 7%; left: 5px; }
-  body[data-theme='cinnamoroll'] .cinnamoroll-f { width: clamp(30px, 8.5vw, 39px); bottom: 7%; right: 18%; }
+  body[data-theme='cinnamoroll'] .cinnamoroll-a { width: clamp(36px, 11vw, 52px); top: 37px; left: 14%; }
+  body[data-theme='cinnamoroll'] .cinnamoroll-b { width: clamp(38px, 11.5vw, 55px); top: 42px; right: 12%; }
+  body[data-theme='cinnamoroll'] .cinnamoroll-c { width: clamp(33px, 9.5vw, 44px); top: 185px; left: 5px; }
+  body[data-theme='cinnamoroll'] .cinnamoroll-d { width: clamp(31px, 9vw, 41px); top: 280px; right: 5px; }
+  body[data-theme='cinnamoroll'] .cinnamoroll-e { width: clamp(33px, 9.5vw, 44px); top: 445px; left: 5px; }
+  body[data-theme='cinnamoroll'] .cinnamoroll-f { width: clamp(30px, 8.5vw, 39px); top: 530px; right: 8px; }
 }
